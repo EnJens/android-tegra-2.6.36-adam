@@ -85,3 +85,9 @@ obj-${CONFIG_MACH_BETELGEUSE}           += board-betelgeuse-pinmux.o
 obj-${CONFIG_MACH_BETELGEUSE}           += board-betelgeuse-panel.o
 obj-${CONFIG_MACH_BETELGEUSE}		+= board-betelgeuse-power.o
 obj-${CONFIG_MACH_BETELGEUSE}           += board-betelgeuse-sdhci.o
+
+obj-${CONFIG_MACH_VEGA}           += board-vega.o
+obj-${CONFIG_MACH_VEGA}           += board-vega-pinmux.o
+obj-${CONFIG_MACH_VEGA}           += board-vega-panel.o
+obj-${CONFIG_MACH_VEGA}			 += board-vega-power.o
+obj-${CONFIG_MACH_VEGA}           += board-vega-sdhci.o

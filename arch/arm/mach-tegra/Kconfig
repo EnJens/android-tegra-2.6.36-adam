@@ -42,6 +42,11 @@ config MACH_BETELGEUSE
        help
          Support for Tosbiba Folio 100
 
+config MACH_VEGA
+       bool "Betelgeuse board (Advent Vega)"
+       help
+         Support for Advent Vega
+
 choice
         prompt "Low-level debug console UART"
         default TEGRA_DEBUG_UART_NONE
