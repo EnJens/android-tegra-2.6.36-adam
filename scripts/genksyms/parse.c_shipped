@@ -160,7 +160,10 @@
 
 
 #include <assert.h>
-#include <malloc.h>
+/* uncomment the following line if you are using linux */
+/* #include <malloc.h> */
+/* uncomment the following line if you are using macosx */
+#include <stdlib.h>
 #include "genksyms.h"
 
 static int is_typedef;
