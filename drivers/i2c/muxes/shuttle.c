@@ -73,7 +73,7 @@ static int egal_tp = -1 ; // if 0, egal TP is not exist, if 1, exist
 static int ite_i2c_nostop = 0 ; // if 0, not use no stop in i2c transfer
 
 static int cal_on = 0;
-//extern void sendCalibrationCmd(void);
+extern void sendCalibrationCmd(void);
 static struct workqueue_struct *tp_cal_wq;
 static struct work_struct  work;
 
@@ -945,7 +945,7 @@ static void tp_cal_wq_func(struct work_struct *work)
     if (cal_on == 1)
     {
         cal_on = 0;
-//        sendCalibrationCmd();
+        sendCalibrationCmd();
     }
 }
 

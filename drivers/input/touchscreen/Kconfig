@@ -11,6 +11,18 @@ menuconfig INPUT_TOUCHSCREEN
 
 if INPUT_TOUCHSCREEN
 
+config TOUCHSCREEN_EGALAX
+   tristate "EGALAX touchscreen"
+   depends on I2C
+   help
+     Say Y here if you have a a EGALAX TP
+
+config TOUCHSCREEN_IT7260
+   tristate "IT7260 touchscreen"
+   depends on I2C
+   help
+     Say Y here if you have a a EGALAX TP
+
 config TOUCHSCREEN_88PM860X
 	tristate "Marvell 88PM860x touchscreen"
 	depends on MFD_88PM860X
