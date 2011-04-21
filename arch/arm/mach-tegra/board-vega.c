@@ -19,6 +19,8 @@
 #include <linux/platform_device.h>
 #include <linux/serial_8250.h>
 #include <linux/clk.h>
+#include <linux/gpio.h>
+#include <linux/console.h>
 #include <linux/mtd/mtd.h>
 #include <linux/mtd/partitions.h>
 #include <linux/dma-mapping.h>
@@ -48,6 +50,8 @@
 #include "board.h"
 #include "board-vega.h"
 #include "devices.h"
+#include "gpio-names.h"
+
 
 /* NVidia bootloader tags */
 #define ATAG_NVIDIA		0x41000801
@@ -61,24 +65,83 @@
 #define ATAG_NVIDIA_PRESERVED_MEM_N	2
 #define ATAG_NVIDIA_FORCE_32		0x7fffffff
 
-static char *usb_functions[] = { "mtp" };
-static char *usb_functions_adb[] = { "mtp", "adb" };
+//static char *usb_functions[] = { "mtp" };
+//static char *usb_functions_adb[] = { "mtp", "adb" };
+
+static char *usb_functions[] = { "mtp", "usb_mass_storage" };
+static char *usb_functions_adb[] = { "mtp", "adb", "usb_mass_storage" };
+
+static char *tegra_android_functions_ums[] = {
+#ifdef CONFIG_USB_ANDROID_MASS_STORAGE
+	"usb_mass_storage",
+#endif
+};
+
+static char *tegra_android_functions_ums_adb[] = {
+#ifdef CONFIG_USB_ANDROID_MASS_STORAGE
+	"usb_mass_storage",
+#endif
+#ifdef CONFIG_USB_ANDROID_ADB
+	"adb",
+#endif
+};
+
+static char *tegra_android_functions_all[] = {
+#ifdef CONFIG_USB_ANDROID_MASS_STORAGE
+	"usb_mass_storage",
+#endif
+#ifdef CONFIG_USB_ANDROID_ADB
+	"adb",
+#endif
+};
 
 static struct android_usb_product usb_products[] = {
-	{
-		.product_id     = 0x7102,
-		.num_functions  = ARRAY_SIZE(usb_functions),
-		.functions      = usb_functions,
+/*{
+	[0] = {
+		.product_id = 0x7100,
+		.num_functions = ARRAY_SIZE(tegra_android_functions_ums),
+		.functions = tegra_android_functions_ums,
 	},
+	[1] = {
+		.product_id = 0x7100,
+		.num_functions = ARRAY_SIZE(tegra_android_functions_ums_adb),
+		.functions = tegra_android_functions_ums_adb,
+	},
+
+	[2] = {
+		.product_id = 0x7102,
+		.num_functions = ARRAY_SIZE(tegra_android_functions_rndis),
+		.functions = tegra_android_functions_rndis,
+	},
+	[3] = {
+		.product_id = 0x7103,
+		.num_functions = ARRAY_SIZE(tegra_android_functions_rndis_adb),
+		.functions = tegra_android_functions_rndis_adb,
+	},
+*/
 	{
 		.product_id     = 0x7100,
 		.num_functions  = ARRAY_SIZE(usb_functions_adb),
 		.functions      = usb_functions_adb,
 	},
+	{
+		.product_id     = 0x7102,
+		.num_functions  = ARRAY_SIZE(usb_functions),
+		.functions      = usb_functions,
+	},
+
 };
 
 /* standard android USB platform data */
 static struct android_usb_platform_data andusb_plat = {
+	.vendor_id = 0x955,
+	.product_id = 0x7100,
+	.manufacturer_name = "NVIDIA",
+	.num_products = ARRAY_SIZE(usb_products),
+	.products = usb_products,
+	.num_functions = ARRAY_SIZE(tegra_android_functions_all),
+	.functions = tegra_android_functions_all,
+	/*
 	.vendor_id              = 0x0955,
 	.product_id             = 0x7100,
 	.manufacturer_name      = "NVIDIA",
@@ -88,6 +151,7 @@ static struct android_usb_platform_data andusb_plat = {
 	.products = usb_products,
 	.num_functions = ARRAY_SIZE(usb_functions_adb),
 	.functions = usb_functions_adb,
+*/
 };
 
 static struct platform_device androidusb_device = {
@@ -98,6 +162,22 @@ static struct platform_device androidusb_device = {
 	},
 };
 
+#ifdef CONFIG_USB_ANDROID_MASS_STORAGE
+static struct usb_mass_storage_platform_data tegra_usb_fsg_platform = {
+	.vendor = "NVIDIA",
+	.product = "Tegra 2",
+	.nluns = 1,
+//	.buf_size = 16384,
+	.release        = 0xffff,
+};
+static struct platform_device tegra_usb_fsg_device = {
+	.name = "usb_mass_storage",
+	.id = -1,
+	.dev = {
+		.platform_data = &tegra_usb_fsg_platform,
+	},
+};
+#endif
 
 struct tag_tegra {
 	__u32 bootarg_key;
@@ -318,18 +398,18 @@ static void harmony_i2c_init(void)
 							ARRAY_SIZE(t20_i2c_boardinfo));
 	
 	// touch panel
-//	gpio_request(14, "Shuttle_touch");
-//	gpio_request(214, "Shuttle_touch_2");
+	gpio_request(14, "Shuttle_touch");
+	gpio_request(214, "Shuttle_touch_2");
 	// for ITE TP start
-//	gpio_direction_output(14, 0) ;
-//	gpio_direction_output(214, 0) ;
-//	mdelay(10) ;
-//	mdelay(10) ;
-//	gpio_direction_output(14, 1) ;
-//	gpio_direction_input(14) ;
+	gpio_direction_output(14, 0) ;
+	gpio_direction_output(214, 0) ;
+	mdelay(10) ;
+	mdelay(10) ;
+	gpio_direction_output(14, 1) ;
+	gpio_direction_input(14) ;
 	// for ITE TP end
-//	tp_i2c_device1[0].irq = gpio_to_irq(14);
-//	tp_i2c_device2[0].irq = gpio_to_irq(14);
+	tp_i2c_device1[0].irq = gpio_to_irq(14);
+	tp_i2c_device2[0].irq = gpio_to_irq(14);
 	//set_irq_type(tp_i2c_devices[0].irq, IRQ_TYPE_EDGE_FALLING);
 	
 	i2c_register_board_info(3, tp_i2c_device1, ARRAY_SIZE(tp_i2c_device1));
@@ -338,6 +418,9 @@ static void harmony_i2c_init(void)
 }
 
 static struct platform_device *harmony_devices[] __initdata = {
+#ifdef CONFIG_USB_ANDROID_MASS_STORAGE
+	&tegra_usb_fsg_device,
+#endif
 	&androidusb_device,
 	&debug_uart,
 	&pmu_device,
