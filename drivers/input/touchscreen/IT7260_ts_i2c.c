@@ -958,7 +958,7 @@ bool IT7260_Init(void)
 	if (tmp == 0) {
 	//	return false;
 	}
-pr_info("############################################# [ it7260 end init ] \n");ssleep(10);
+//pr_info("############################################# [ it7260 end init ] \n");ssleep(10);
 	//// Get 2D Resolution
 	//set_ite_i2c_nostop(1);
 	//do {

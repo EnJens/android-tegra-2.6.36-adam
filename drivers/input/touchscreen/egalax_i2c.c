@@ -685,7 +685,7 @@ static struct egalax_char_dev* setup_chardev(dev_t dev)
 	struct egalax_char_dev *pCharDev;
 	int result;
 
-	pr_info("############################################# [ init ] \n");ssleep(10);
+//	pr_info("############################################# [ init ] \n");ssleep(10);
 	
 	pCharDev = kmalloc(1*sizeof(struct egalax_char_dev), GFP_KERNEL);
 	if(!pCharDev) 
@@ -703,7 +703,7 @@ static struct egalax_char_dev* setup_chardev(dev_t dev)
 //	if( pCharDev->pDataFiFo==NULL )
 //		goto fail_kfifo;
 
-	pr_info("############################################# [ after issue ] \n");ssleep(10);
+//	pr_info("############################################# [ after issue ] \n");ssleep(10);
 	
 	pCharDev->OpenCnts = 0;
 	cdev_init(&pCharDev->cdev, &egalax_cdev_fops);
@@ -787,7 +787,7 @@ static int egalax_i2c_ts_init(void)
 	memset(PointBuf, 0, sizeof(struct point_data)*MAX_SUPPORT_POINT);
 #endif //#ifndef _NON_INPUT_DEV
 
-	pr_info("############################################# [ eglax end init ] \n");ssleep(10);
+//	pr_info("############################################# [ eglax end init ] \n");ssleep(10);
 	
 	return i2c_add_driver(&egalax_i2c_driver);
 
