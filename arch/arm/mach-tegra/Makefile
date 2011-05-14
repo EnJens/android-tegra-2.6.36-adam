@@ -91,3 +91,9 @@ obj-${CONFIG_MACH_VEGA}           += board-vega-pinmux.o
 obj-${CONFIG_MACH_VEGA}           += board-vega-panel.o
 obj-${CONFIG_MACH_VEGA}			 += board-vega-power.o
 obj-${CONFIG_MACH_VEGA}           += board-vega-sdhci.o
+
+obj-${CONFIG_MACH_ADAM}           += board-adam.o
+obj-${CONFIG_MACH_ADAM}           += board-adam-pinmux.o
+obj-${CONFIG_MACH_ADAM}           += board-adam-panel.o
+obj-${CONFIG_MACH_ADAM}			 += board-adam-power.o
+obj-${CONFIG_MACH_ADAM}           += board-adam-sdhci.o
