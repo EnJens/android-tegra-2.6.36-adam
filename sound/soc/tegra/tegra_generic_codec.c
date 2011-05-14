@@ -65,6 +65,11 @@ static int tegra_generic_codec_set_dai_sysclk(struct snd_soc_dai *codec_dai,
 	return 0;
 }
 
+void tegra_ext_control(struct snd_soc_codec *codec, int new_con)
+{
+
+}
+
 static struct snd_soc_dai_ops tegra_generic_codec_stub_ops = {
 	.startup	= tegra_generic_codec_startup,
 	.shutdown	= tegra_generic_codec_shutdown,

@@ -20,17 +20,18 @@
 #include <linux/serial_8250.h>
 #include <linux/clk.h>
 #include <linux/gpio.h>
+#include <linux/gpio_keys.h>
 #include <linux/console.h>
 #include <linux/mtd/mtd.h>
 #include <linux/mtd/partitions.h>
 #include <linux/dma-mapping.h>
-#include <linux/pda_power.h>
 #include <linux/i2c.h>
 #include <linux/i2c-tegra.h>
 #include <linux/io.h>
 #include <linux/delay.h>
 #include <linux/platform_data/tegra_usb.h>
 #include <linux/usb/android_composite.h>
+#include <linux/input.h>
 
 #include <asm/mach-types.h>
 #include <asm/mach/arch.h>
@@ -51,6 +52,8 @@
 #include "board-adam.h"
 #include "devices.h"
 #include "gpio-names.h"
+#include "fuse.h"
+#include "wakeups-t2.h"
 
 
 /* NVidia bootloader tags */
@@ -331,7 +334,7 @@ static struct tegra_i2c_platform_data harmony_dvc_platform_data = {
 
 static struct i2c_board_info __initdata harmony_i2c_bus1_board_info[] = {
 	{
-		I2C_BOARD_INFO("wm8903", 0x1a),
+		I2C_BOARD_INFO("alcxxxx", 0x34),
 	},
 };
 
@@ -346,6 +349,15 @@ static struct tegra_audio_platform_data tegra_audio_pdata = {
 	.fifo_fmt	= I2S_FIFO_16_LSB,
 	.bit_size	= I2S_BIT_SIZE_16,
 };
+
+/*
+static struct i2c_board_info __initdata  at168_device[] = {
+	{
+		I2C_BOARD_INFO("at168_i2c", 0x5c),
+	},
+};
+*/
+
 
 /*static struct i2c_board_info __initdata tp_i2c_device1[] = {
 	{
@@ -389,6 +401,57 @@ static void harmony_i2c_init(void)
 	
 }
 
+#ifdef CONFIG_KEYBOARD_GPIO
+#define GPIO_KEY(_id, _gpio, _iswake)           \
+        {                                       \
+                .code = _id,                    \
+                .gpio = TEGRA_GPIO_##_gpio,     \
+                .active_low = 1,                \
+                .desc = #_id,                   \
+                .type = EV_KEY,                 \
+                .wakeup = _iswake,              \
+                .debounce_interval = 10,        \
+        }
+
+static struct gpio_keys_button harmony_keys[] = {
+        [0] = GPIO_KEY(KEY_VOLUMEUP, PD4, 0),
+        [1] = GPIO_KEY(KEY_VOLUMEDOWN, PV4, 0),
+        [3] = GPIO_KEY(KEY_BACK, PH0, 0),
+};
+
+#define PMC_WAKE_STATUS 0x14
+
+static int harmony_wakeup_key(void)
+{
+        unsigned long status =
+                readl(IO_ADDRESS(TEGRA_PMC_BASE) + PMC_WAKE_STATUS);
+
+        return status & TEGRA_WAKE_GPIO_PV2 ? KEY_POWER : KEY_RESERVED;
+}
+
+static struct gpio_keys_platform_data harmony_keys_platform_data = {
+        .buttons        = harmony_keys,
+        .nbuttons       = ARRAY_SIZE(harmony_keys),
+        .wakeup_key     = harmony_wakeup_key,
+};
+
+static struct platform_device harmony_keys_device = {
+        .name   = "gpio-keys",
+        .id     = 0,
+        .dev    = {
+                .platform_data  = &harmony_keys_platform_data,
+        },
+};
+
+static void harmony_keys_init(void)
+{
+        int i;
+
+        for (i = 0; i < ARRAY_SIZE(harmony_keys); i++)
+                tegra_gpio_enable(harmony_keys[i].gpio);
+}
+
+#endif
 static struct platform_device *harmony_devices[] __initdata = {
 #ifdef CONFIG_USB_ANDROID_MASS_STORAGE
 	&tegra_usb_fsg_device,
@@ -398,7 +461,9 @@ static struct platform_device *harmony_devices[] __initdata = {
 	&pmu_device,
 	&tegra_nand_device,
 	&tegra_udc_device,
-	&pda_power_device,
+#ifdef CONFIG_KEYBOARD_GPIO
+        &harmony_keys_device,
+#endif
 	&tegra_ehci3_device,
 	&tegra_spi_device1,
 	&tegra_spi_device2,
@@ -534,11 +599,12 @@ static void __init tegra_harmony_init(void)
 	tegra_i2s_device1.dev.platform_data = &tegra_audio_pdata;
 
 	platform_add_devices(harmony_devices, ARRAY_SIZE(harmony_devices));
-
+	
 	harmony_panel_init();
 	harmony_sdhci_init();
 	harmony_i2c_init();
 	harmony_power_init();
+	harmony_keys_init();
 }
 
 MACHINE_START(HARMONY, "harmony")
