@@ -47,6 +47,11 @@ config MACH_VEGA
        help
          Support for Advent Vega
 
+config MACH_ADAM
+       bool "Malata board (Notion Ink Adam)"
+       help
+         Support for Notion Ink Adam
+
 choice
         prompt "Low-level debug console UART"
         default TEGRA_DEBUG_UART_NONE
