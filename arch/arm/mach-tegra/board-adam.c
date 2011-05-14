@@ -226,21 +226,21 @@ static struct tegra_nand_chip_parms nand_chip_parms[] = {
 			.tadl		= 100,
 		},
 	},
-	/* Hynix H5PS1GB3EFR */
+	/* Hynix HY27UG088G */
 	[1] = {
 		.vendor_id   = 0xAD,
 		.device_id   = 0xDC,
-		.capacity    = 512,
+		.capacity    = 1024,
 		.timing      = {
 			.trp		= 12,
-			.trh		= 10,
+			.trh		= 15,
 			.twp		= 12,
 			.twh		= 10,
 			.tcs		= 20,
-			.twhr		= 80,
+			.twhr		= 60,
 			.tcr_tar_trr	= 20,
 			.twb		= 100,
-			.trp_resp	= 20,
+			.trp_resp	= 12,
 			.tadl		= 70,
 		},
 	},
@@ -359,7 +359,7 @@ static struct tegra_audio_platform_data tegra_audio_pdata = {
 	.bit_size	= I2S_BIT_SIZE_16,
 };
 
-static struct i2c_board_info __initdata tp_i2c_device1[] = {
+/*static struct i2c_board_info __initdata tp_i2c_device1[] = {
 	{
 		I2C_BOARD_INFO("egalax_i2c", 0x04),
 	},
@@ -376,7 +376,7 @@ static struct i2c_board_info __initdata t20_i2c_boardinfo[] = {
 		I2C_BOARD_INFO("bma150", 0x38),
 	},
 };
-
+*/
 static void harmony_i2c_init(void)
 {
 	tegra_i2c_device1.dev.platform_data = &harmony_i2c1_platform_data;
@@ -394,26 +394,10 @@ static void harmony_i2c_init(void)
 	
 	//Ant Start
 	// G-sensor
-	i2c_register_board_info(0, t20_i2c_boardinfo,
+/*	i2c_register_board_info(0, t20_i2c_boardinfo,
 							ARRAY_SIZE(t20_i2c_boardinfo));
-	
-	// touch panel
-	gpio_request(14, "Shuttle_touch");
-	gpio_request(214, "Shuttle_touch_2");
-	// for ITE TP start
-	gpio_direction_output(14, 0) ;
-	gpio_direction_output(214, 0) ;
-	mdelay(10) ;
-	mdelay(10) ;
-	gpio_direction_output(14, 1) ;
-	gpio_direction_input(14) ;
-	// for ITE TP end
-	tp_i2c_device1[0].irq = gpio_to_irq(14);
-	tp_i2c_device2[0].irq = gpio_to_irq(14);
-	//set_irq_type(tp_i2c_devices[0].irq, IRQ_TYPE_EDGE_FALLING);
-	
 	i2c_register_board_info(3, tp_i2c_device1, ARRAY_SIZE(tp_i2c_device1));
-	i2c_register_board_info(3, tp_i2c_device2, ARRAY_SIZE(tp_i2c_device2));	
+	i2c_register_board_info(3, tp_i2c_device2, ARRAY_SIZE(tp_i2c_device2));	*/
 	
 }
 

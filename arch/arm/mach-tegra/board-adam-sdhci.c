@@ -53,6 +53,18 @@ static struct resource sdhci_resource2[] = {
 	},
 };
 
+static struct resource sdhci_resource3[] = {
+	[0] = {
+		.start  = INT_SDMMC3,
+		.end    = INT_SDMMC3,
+		.flags  = IORESOURCE_IRQ,
+	},
+	[1] = {
+		.start	= TEGRA_SDMMC3_BASE,
+		.end	= TEGRA_SDMMC3_BASE + TEGRA_SDMMC3_SIZE-1,
+		.flags	= IORESOURCE_MEM,
+	},
+};
 static struct resource sdhci_resource4[] = {
 	[0] = {
 		.start  = INT_SDMMC4,
@@ -77,17 +89,25 @@ static struct tegra_sdhci_platform_data tegra_sdhci_platform_data1 = {
 static struct tegra_sdhci_platform_data tegra_sdhci_platform_data2 = {
 	.clk_id = NULL,
 	.force_hs = 1,
-	.cd_gpio = TEGRA_GPIO_PI5,
-	.wp_gpio = TEGRA_GPIO_PH1,
-	.power_gpio = TEGRA_GPIO_PT3,
+	.cd_gpio = -1,
+	.wp_gpio = -1,
+	.power_gpio = -1,
+};
+
+static struct tegra_sdhci_platform_data tegra_sdhci_platform_data3 = {
+	.clk_id = NULL,
+	.force_hs = 1,
+	.cd_gpio = -1,
+	.wp_gpio = -1,
+	.power_gpio = -1,
 };
 
 static struct tegra_sdhci_platform_data tegra_sdhci_platform_data4 = {
 	.clk_id = NULL,
 	.force_hs = 0,
-	.cd_gpio = TEGRA_GPIO_PH2,
-	.wp_gpio = TEGRA_GPIO_PH3,
-	.power_gpio = TEGRA_GPIO_PI6,
+	.cd_gpio = TEGRA_GPIO_PI5,
+	.wp_gpio = -1,
+	.power_gpio = TEGRA_GPIO_PD0,
 };
 
 static struct platform_device tegra_sdhci_device1 = {
@@ -110,6 +130,16 @@ static struct platform_device tegra_sdhci_device2 = {
 	},
 };
 
+static struct platform_device tegra_sdhci_device3 = {
+	.name		= "sdhci-tegra",
+	.id		= 2,
+	.resource	= sdhci_resource3,
+	.num_resources	= ARRAY_SIZE(sdhci_resource3),
+	.dev = {
+		.platform_data = &tegra_sdhci_platform_data3,
+	},
+};
+
 static struct platform_device tegra_sdhci_device4 = {
 	.name		= "sdhci-tegra",
 	.id		= 3,
@@ -122,27 +152,28 @@ static struct platform_device tegra_sdhci_device4 = {
 
 int __init harmony_sdhci_init(void)
 {
-	gpio_request(tegra_sdhci_platform_data2.power_gpio, "sdhci2_power");
+/*	gpio_request(tegra_sdhci_platform_data2.power_gpio, "sdhci2_power");
 	gpio_request(tegra_sdhci_platform_data2.cd_gpio, "sdhci2_cd");
 	gpio_request(tegra_sdhci_platform_data2.wp_gpio, "sdhci2_wp");
 
 	tegra_gpio_enable(tegra_sdhci_platform_data2.power_gpio);
 	tegra_gpio_enable(tegra_sdhci_platform_data2.cd_gpio);
-	tegra_gpio_enable(tegra_sdhci_platform_data2.wp_gpio);
+	tegra_gpio_enable(tegra_sdhci_platform_data2.wp_gpio);*/
 
 	gpio_request(tegra_sdhci_platform_data4.power_gpio, "sdhci4_power");
 	gpio_request(tegra_sdhci_platform_data4.cd_gpio, "sdhci4_cd");
-	gpio_request(tegra_sdhci_platform_data4.wp_gpio, "sdhci4_wp");
+//	gpio_request(tegra_sdhci_platform_data4.wp_gpio, "sdhci4_wp");
 
 	tegra_gpio_enable(tegra_sdhci_platform_data4.power_gpio);
-	tegra_gpio_enable(tegra_sdhci_platform_data4.cd_gpio);
+//	tegra_gpio_enable(tegra_sdhci_platform_data4.cd_gpio);
 	tegra_gpio_enable(tegra_sdhci_platform_data4.wp_gpio);
 
-	gpio_direction_output(tegra_sdhci_platform_data2.power_gpio, 1);
+//	gpio_direction_output(tegra_sdhci_platform_data2.power_gpio, 1);
 	gpio_direction_output(tegra_sdhci_platform_data4.power_gpio, 1);
 
 	platform_device_register(&tegra_sdhci_device1);
 	platform_device_register(&tegra_sdhci_device2);
+	platform_device_register(&tegra_sdhci_device3);
 	platform_device_register(&tegra_sdhci_device4);
 
 	return 0;
