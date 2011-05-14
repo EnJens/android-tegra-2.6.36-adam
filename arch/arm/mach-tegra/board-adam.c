@@ -292,18 +292,6 @@ static struct platform_device debug_uart = {
 	},
 };
 
-/* PDA power */
-static struct pda_power_pdata pda_power_pdata = {
-};
-
-static struct platform_device pda_power_device = {
-	.name   = "pda_power",
-	.id     = -1,
-	.dev    = {
-		.platform_data  = &pda_power_pdata,
-	},
-};
-
 static struct tegra_i2c_platform_data harmony_i2c1_platform_data = {
 	.adapter_nr	= 0,
 	.bus_count	= 1,

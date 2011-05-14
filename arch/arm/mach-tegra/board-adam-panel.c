@@ -36,7 +36,7 @@
 #include "gpio-names.h"
 
 #define harmony_bl_enb		TEGRA_GPIO_PW0 // 'w'-'a',0
-#define harmony_lvds_shutdown	TEGRA_GPIO_PB2 // hmm.. 'v'-'a', 7 maybe?
+#define harmony_lvds_shutdown	TEGRA_GPIO_PV7 // hmm.. 'v'-'a', 7 maybe?
 #define harmony_en_vdd_pnl	TEGRA_GPIO_PC6 // 'c' - 'a, 6
 #define harmony_bl_vdd		TEGRA_GPIO_PD1 // 'd'-'a',1 
 //#define harmony_bl_pwm		TEGRA_GPIO_PB4

@@ -122,7 +122,7 @@ config SND_SOC_AK4671
 	tristate
 
 config SND_SOC_ALC5623
-	tristate
+	tristate "ALC5623 Codec"
 
 config SND_SOC_CQ0093VC
 	tristate
