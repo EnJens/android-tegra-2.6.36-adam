@@ -623,10 +623,10 @@ static void __init tegra_harmony_init(void)
 	harmony_power_init();
 	harmony_keys_init();
 	/* Temporary hack to enable gps/memsic sensors. Move to proper initialization */
-	tegra_gpio_enable(TEGRA_GPIO_PV3);
+/*	tegra_gpio_enable(TEGRA_GPIO_PV3);
 	gpio_request(TEGRA_GPIO_PV3, "gps_control");
 	gpio_direction_output(TEGRA_GPIO_PV3, 0);
-	gpio_set_value(TEGRA_GPIO_PV3, 1);
+	gpio_set_value(TEGRA_GPIO_PV3, 1);*/
 //	harmony_debug_uart_init();
 }
 

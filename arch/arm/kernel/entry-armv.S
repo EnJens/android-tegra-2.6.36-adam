@@ -1012,7 +1012,15 @@ __kuser_get_tls:				@ 0xffff0fe0
 	ldr	r0, [pc, #(16 - 8)]	@ read TLS, set in kuser_get_tls_init
 	usr_ret	lr
 	mrc	p15, 0, r0, c13, c0, 3	@ 0xffff0fe8 hardware TLS code
+#if defined(CONFIG_TEGRA_ERRATA_657451)
+	bfi     r0, r0, #20, #1
+	bic     r0, r0, #1
+#endif
+#if defined(CONFIG_TEGRA_ERRATA_657451)
+	.rep	2
+#else
 	.rep	4
+#endif
 	.word	0			@ 0xffff0ff0 software TLS value, then
 	.endr				@ pad up to __kuser_helper_version
 
