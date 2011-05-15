@@ -278,10 +278,11 @@ static struct plat_serial8250_port debug_uart_platform_data[] = {
 		.membase	= IO_ADDRESS(TEGRA_UARTD_BASE),
 		.mapbase	= TEGRA_UARTD_BASE,
 		.irq		= INT_UARTD,
-		.flags		= UPF_BOOT_AUTOCONF,
+		.flags		= UPF_BOOT_AUTOCONF | UPF_FIXED_TYPE,
+		.type		= PORT_TEGRA,
 		.iotype		= UPIO_MEM,
 		.regshift	= 2,
-		.uartclk	= 216000000,
+//		.uartclk	= 1843200,
 	}, {
 		.flags		= 0
 	}
@@ -295,10 +296,22 @@ static struct platform_device debug_uart = {
 	},
 };
 
+
+// TODO: Add suspend support!
+static void harmony_debug_uart_init()
+{
+	struct clk *c = NULL;
+	c = clk_get_sys("uart.3", NULL);
+	clk_set_rate(c, 115200*16);
+	clk_enable(c);
+	debug_uart_platform_data[0].uartclk = clk_get_rate(c);
+	platform_device_register(&debug_uart);
+};
+
 static struct tegra_i2c_platform_data harmony_i2c1_platform_data = {
 	.adapter_nr	= 0,
 	.bus_count	= 1,
-	.bus_clk_rate	= { 400000, 0 },
+	.bus_clk_rate	= { 100000, 0 },
 };
 
 static const struct tegra_pingroup_config i2c2_ddc = {
@@ -314,7 +327,7 @@ static const struct tegra_pingroup_config i2c2_gen2 = {
 static struct tegra_i2c_platform_data harmony_i2c2_platform_data = {
 	.adapter_nr	= 1,
 	.bus_count	= 2,
-	.bus_clk_rate	= { 400000, 100000 },
+	.bus_clk_rate	= { 100000, 100000 },
 	.bus_mux	= { &i2c2_ddc, &i2c2_gen2 },
 	.bus_mux_len	= { 1, 1 },
 };
@@ -322,13 +335,13 @@ static struct tegra_i2c_platform_data harmony_i2c2_platform_data = {
 static struct tegra_i2c_platform_data harmony_i2c3_platform_data = {
 	.adapter_nr	= 3,
 	.bus_count	= 1,
-	.bus_clk_rate	= { 400000, 0 },
+	.bus_clk_rate	= { 100000, 0 },
 };
 
 static struct tegra_i2c_platform_data harmony_dvc_platform_data = {
 	.adapter_nr	= 4,
 	.bus_count	= 1,
-	.bus_clk_rate	= { 400000, 0 },
+	.bus_clk_rate	= { 100000, 0 },
 	.is_dvc		= true,
 };
 
@@ -609,12 +622,12 @@ static void __init tegra_harmony_init(void)
 	harmony_i2c_init();
 	harmony_power_init();
 	harmony_keys_init();
-	
 	/* Temporary hack to enable gps/memsic sensors. Move to proper initialization */
 	tegra_gpio_enable(TEGRA_GPIO_PV3);
 	gpio_request(TEGRA_GPIO_PV3, "gps_control");
 	gpio_direction_output(TEGRA_GPIO_PV3, 0);
 	gpio_set_value(TEGRA_GPIO_PV3, 1);
+//	harmony_debug_uart_init();
 }
 
 MACHINE_START(HARMONY, "harmony")
