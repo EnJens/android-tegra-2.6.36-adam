@@ -225,12 +225,16 @@ static int harmony_wifi_power(int on)
         gpio_set_value(HARMONY_WLAN_PWR, on);
         mdelay(100);
         gpio_set_value(HARMONY_WLAN_RST, on);
-        mdelay(200);
+        mdelay(300);
 
-        if (on)
+/*        if (on)
+	{
                 clk_enable(wifi_32k_clk);
+	}
         else
+	{
                 clk_disable(wifi_32k_clk);
+	}*/
         return 0;
 }
 
@@ -247,7 +251,7 @@ static int __init harmony_wifi_init(void)
                 pr_err("%s: unable to get blink clock\n", __func__);
                 return PTR_ERR(wifi_32k_clk);
         }
-
+	clk_enable(wifi_32k_clk); // Required since wifi/bt shared clock
         gpio_request(HARMONY_WLAN_PWR, "wlan_power");
         gpio_request(HARMONY_WLAN_RST, "wlan_rst");
 

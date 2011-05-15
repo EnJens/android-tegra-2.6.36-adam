@@ -233,7 +233,7 @@ static struct tegra_nand_chip_parms nand_chip_parms[] = {
 	[1] = {
 		.vendor_id   = 0xAD,
 		.device_id   = 0xDC,
-		.capacity    = 1024,
+		.capacity    = 512,
 		.timing      = {
 			.trp		= 12,
 			.trh		= 15,
@@ -350,14 +350,12 @@ static struct tegra_audio_platform_data tegra_audio_pdata = {
 	.bit_size	= I2S_BIT_SIZE_16,
 };
 
-/*
+
 static struct i2c_board_info __initdata  at168_device[] = {
 	{
 		I2C_BOARD_INFO("at168_i2c", 0x5c),
 	},
 };
-*/
-
 
 /*static struct i2c_board_info __initdata tp_i2c_device1[] = {
 	{
@@ -452,6 +450,11 @@ static void harmony_keys_init(void)
 }
 
 #endif
+
+#ifdef CONFIG_HARMONY_GPS_CONTROL
+
+#endif
+
 static struct platform_device *harmony_devices[] __initdata = {
 #ifdef CONFIG_USB_ANDROID_MASS_STORAGE
 	&tegra_usb_fsg_device,
@@ -487,6 +490,7 @@ static __initdata struct tegra_clk_init_table harmony_clk_init_table[] = {
 	/* name		parent		rate		enabled */
 	{ "clk_dev1",	NULL,		26000000,	true},
 	{ "clk_m",	NULL,		12000000,	true},
+	{ "blink",      "clk_32k",      32768,          false},
 	{ "3d",		"pll_m",	266400000,	true},
 	{ "2d",		"pll_m",	266400000,	true},
 	{ "vi",		"pll_m",	50000000,	true},
@@ -541,7 +545,7 @@ static __initdata struct tegra_clk_init_table harmony_clk_init_table[] = {
 	{ "vfir",	"clk_m",	12000000,	false},
 	{ "sdmmc1",	"clk_m",	48000000,	true},
 	{ "sdmmc2",	"clk_m",	48000000,	true},
-	{ "sdmmc3",	"clk_m",	48000000,	false},
+	{ "sdmmc3",	"clk_m",	48000000,	true},
 	{ "sdmmc4",	"clk_m",	48000000,	true},
 	{ "la",		"clk_m",	12000000,	false},
 	{ "owr",	"clk_m",	12000000,	false},
@@ -599,12 +603,18 @@ static void __init tegra_harmony_init(void)
 	tegra_i2s_device1.dev.platform_data = &tegra_audio_pdata;
 
 	platform_add_devices(harmony_devices, ARRAY_SIZE(harmony_devices));
-	
+
 	harmony_panel_init();
 	harmony_sdhci_init();
 	harmony_i2c_init();
 	harmony_power_init();
 	harmony_keys_init();
+	
+	/* Temporary hack to enable gps/memsic sensors. Move to proper initialization */
+	tegra_gpio_enable(TEGRA_GPIO_PV3);
+	gpio_request(TEGRA_GPIO_PV3, "gps_control");
+	gpio_direction_output(TEGRA_GPIO_PV3, 0);
+	gpio_set_value(TEGRA_GPIO_PV3, 1);
 }
 
 MACHINE_START(HARMONY, "harmony")
