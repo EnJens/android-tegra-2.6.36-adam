@@ -165,9 +165,9 @@ static void __init tegra_adam_init(void)
 	/* Init the suspend information */
 	tegra_init_suspend(&adam_suspend);
 
-	/* Set the SDMMC2 (wifi) tap delay to 6.  This value is determined
+	/* Set the SDMMC1 (wifi) tap delay to 6.  This value is determined
 	 * based on propagation delay on the PCB traces. */
-	clk = clk_get_sys("sdhci-tegra.1", NULL);
+	clk = clk_get_sys("sdhci-tegra.0", NULL);
 	if (!IS_ERR(clk)) {
 		tegra_sdmmc_tap_delay(clk, 6);
 		clk_put(clk);
@@ -274,9 +274,6 @@ static void __init tegra_adam_fixup(struct machine_desc *desc,
 	mr->bank[1].size = ADAM_MEM_SIZE,
 } 
 
-/* the Shuttle bootloader identifies itself as MACH_TYPE_HARMONY [=2731]
-   or as MACH_TYPE_LEGACY[=3333]. We MUST handle both cases in order
-   to make the kernel bootable */
 MACHINE_START(HARMONY, "harmony")
 	.boot_params	= 0x00000100,
 	.map_io         = tegra_map_common_io,

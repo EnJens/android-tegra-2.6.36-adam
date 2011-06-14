@@ -122,12 +122,12 @@ int __init adam_sdhci_register_devices(void)
 	tegra_sdhci_device3.dev.platform_data = &adam_wlan_data;
 	tegra_sdhci_device4.dev.platform_data = &tegra_sdhci_platform_data4;
 
-	gpio_request(tegra_sdhci_platform_data2.power_gpio, "sdhci2_power");
-	gpio_request(tegra_sdhci_platform_data2.cd_gpio, "sdhci2_cd");
+	gpio_request(tegra_sdhci_platform_data1.power_gpio, "sdhci2_power");
+	gpio_request(tegra_sdhci_platform_data1.cd_gpio, "sdhci2_cd");
 
 	gpio_request(tegra_sdhci_platform_data4.power_gpio, "sdhci4_power");
 	gpio_request(tegra_sdhci_platform_data4.cd_gpio, "sdhci4_cd");
-	gpio_request(tegra_sdhci_platform_data4.wp_gpio, "sdhci4_wp");
+	//gpio_request(tegra_sdhci_platform_data4.wp_gpio, "sdhci4_wp");
 
 	gpio_direction_output(tegra_sdhci_platform_data2.power_gpio, 1);
 	gpio_direction_output(tegra_sdhci_platform_data4.power_gpio, 1);

@@ -29,12 +29,13 @@
 
 static struct i2c_board_info __initdata adam_i2c_bma150_sensor_info[] = {
 	 {
-		I2C_BOARD_INFO("bma150", 0x38),
+		//I2C_BOARD_INFO("bma150", 0x38),
 	 },
 };
 
 int __init adam_sensors_register_devices(void)
 {
-	return i2c_register_board_info(0, adam_i2c_bma150_sensor_info,
-		ARRAY_SIZE(adam_i2c_bma150_sensor_info));
+	/*return i2c_register_board_info(0, adam_i2c_bma150_sensor_info,
+		ARRAY_SIZE(adam_i2c_bma150_sensor_info));*/
+	return 0;
 }

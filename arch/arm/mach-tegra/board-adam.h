@@ -23,11 +23,9 @@
 /* GPS and 3G cards share the same enabling IO line */
 #define ADAM_3GGPS_DISABLE  	TEGRA_GPIO_PJ7 	/* 1= disabled*/
 
-#define ADAM_KEY_VOLUMEUP 	TEGRA_GPIO_PB1 	/* 0=pressed */
-#define ADAM_KEY_VOLUMEDOWN 	TEGRA_GPIO_PK7 	/* 0=pressed */
+#define ADAM_KEY_VOLUMEUP 	TEGRA_GPIO_PD4 	/* 0=pressed */
+#define ADAM_KEY_VOLUMEDOWN 	TEGRA_GPIO_PV4 	/* 0=pressed */
 #define ADAM_KEY_POWER 		TEGRA_GPIO_PV2 	/* 0=pressed */
-#define ADAM_KEY_RESUME 		TEGRA_GPIO_PV6 	/* 0=pressed */
-#define ADAM_KEY_SUSPEND		TEGRA_GPIO_PAA4 /* 0=pressed */
 #define ADAM_KEY_BACK		TEGRA_GPIO_PH0	/* 0=pressed */
 
 /* #define ADAM_EMC_SAMSUNG		*/
@@ -76,9 +74,9 @@
 #define ADAM_SDIO2_CD	TEGRA_GPIO_PI5
 #define ADAM_SDIO2_POWER	TEGRA_GPIO_PT3	/* SDIO0 and SDIO2 power */
 
-#define ADAM_SDHC_CD		TEGRA_GPIO_PH2
-#define ADAM_SDHC_WP		TEGRA_GPIO_PH3	/*1=Write Protected */
-#define ADAM_SDHC_POWER	TEGRA_GPIO_PI6
+#define ADAM_SDHC_CD		TEGRA_GPIO_PI5
+#define ADAM_SDHC_WP		-1	/*1=Write Protected */
+#define ADAM_SDHC_POWER	TEGRA_GPIO_PD0
 
 #define ADAM_TS_IRQ		TEGRA_GPIO_PB6
 #define ADAM_TS_DISABLE	TEGRA_GPIO_PAA6 /* 0=enabled */
@@ -100,10 +98,10 @@
 #define ADAM_NVEC_I2C_ADDR 0x8a 			/* I2C address of Tegra, when acting as I2C slave */
 
 #define ADAM_WAKE_KEY_POWER  TEGRA_WAKE_GPIO_PV2
-#define ADAM_WAKE_KEY_RESUME TEGRA_WAKE_GPIO_PV6
+#define ADAM_WAKE_KEY_RESUME TEGRA_WAKE_GPIO_PV2
 
 /* The switch used to indicate rotation lock */
-#define SW_ROTATION_LOCK 	(SW_MAX-1)
+//#define SW_ROTATION_LOCK 	(SW_MAX-1)
 
 extern void adam_3g_gps_poweron(void);
 extern void adam_3g_gps_poweroff(void);
