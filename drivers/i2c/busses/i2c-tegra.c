@@ -104,12 +104,6 @@
 #define SL_ADDR1(addr) (addr & 0xff)
 #define SL_ADDR2(addr) ((addr >> 8) & 0xff)
 
-// Ant start
-extern void set_tp_status(int number, int status) ;
-extern int get_ite_i2c_nostop(void) ;
-extern int get_tp_status(int number) ;
-// Ant end
-
 struct tegra_i2c_dev;
 
 struct tegra_i2c_bus {
@@ -542,23 +536,11 @@ static int tegra_i2c_xfer_msg(struct tegra_i2c_bus *i2c_bus,
 					TEGRA_I2C_TIMEOUT);
 	tegra_i2c_mask_irq(i2c_dev, int_mask);
 	
-//	if (WARN_ON(ret == 0)) {
-	if (ret == 0) {
+	if (WARN_ON(ret == 0)) {
 		
-		// Ant start
-		if (msg->addr == 0x46){
-			printk(KERN_INFO "Ant -- set ite tp to 0\n") ;
-			set_tp_status(1, 0) ;
-		} else if (msg->addr == 0x04){
-			printk(KERN_INFO "Ant -- set egal tp to 0\n") ;
-			set_tp_status(0, 0) ;
-		} else {
-		// Ant end		
-		
-			dev_err(i2c_dev->dev,
-					"i2c transfer timed out, addr 0x%04x, data 0x%02x\n",
-					msg->addr, msg->buf[0]);
-		}
+		dev_err(i2c_dev->dev,
+				"i2c transfer timed out, addr 0x%04x, data 0x%02x\n",
+				msg->addr, msg->buf[0]);
 		
 		tegra_i2c_init(i2c_dev);
 		return -ETIMEDOUT;
@@ -596,15 +578,6 @@ static int tegra_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[],
 
 	rt_mutex_lock(&i2c_dev->dev_lock);
 
-	// Ant start
-    // && (get_tp_status(1) != 0)
-	if( (msgs[0].addr == 0x46) && (get_ite_i2c_nostop() == 1) )
-	{
-		//printk(KERN_INFO "Ant -- use I2C_M_NOSTART\n") ;
-		msgs[0].flags = I2C_M_NOSTART ;
-	}
-	// Ant end
-	
 	if (i2c_dev->last_mux != i2c_bus->mux) {
 		tegra_pinmux_set_safe_pinmux_table(i2c_dev->last_mux,
 			i2c_dev->last_mux_len);
