@@ -15,7 +15,9 @@
  *  option) any later version.
  *
  */
-
+ 
+/* #define DEBUG */
+ 
 #include "tegra_soc.h"
 #include <linux/gpio.h>
 #include <sound/soc-dapm.h>
@@ -41,6 +43,7 @@ enum shuttle_audio_device {
 
 struct shuttle_audio_priv {
 	struct clk* 		  dap_mclk;			/* DAP clock */
+	
 	struct snd_soc_jack   tegra_jack;		/* jack detection */
 	bool				  init_done;		/* init done */
 	int 				  play_device;		/* Playback devices bitmask */
@@ -48,6 +51,46 @@ struct shuttle_audio_priv {
 	bool				  is_call_mode;		/* if we are in a call mode */
 	int					  gpio_hp_det;		/* GPIO used to detect Headphone plugged in */
 };
+
+/* mclk required for each sampling frequency */
+static const struct {
+	unsigned int mclk;
+	unsigned short srate;
+} clocktab[] = {
+	/* 8k */
+	{ 8192000,  8000},
+	{12288000,  8000},
+	{24576000,  8000},
+
+	/* 11.025k */
+	{11289600, 11025},
+	{16934400, 11025},
+	{22579200, 11025},
+
+	/* 16k */
+	{12288000, 16000},
+	{16384000, 16000},
+	{24576000, 16000},
+
+	/* 22.05k */	
+	{11289600, 22050},
+	{16934400, 22050},
+	{22579200, 22050},
+
+	/* 32k */
+	{12288000, 32000},
+	{16384000, 32000},
+	{24576000, 32000},
+
+	/* 44.1k */
+	{11289600, 44100},
+	{22579200, 44100},
+
+	/* 48k */
+	{12288000, 48000},
+	{24576000, 48000},
+};
+
 
 /* --------- Digital audio interfase ------------ */
 
@@ -58,48 +101,116 @@ static int tegra_hifi_hw_params(struct snd_pcm_substream *substream,
 	struct snd_soc_dai *codec_dai 	= rtd->dai->codec_dai;
 	struct snd_soc_dai *cpu_dai 	= rtd->dai->cpu_dai;
 	struct shuttle_audio_priv* ctx 	= rtd->socdev->codec_data;
-	enum dac_dap_data_format data_fmt;
+	
+	
 	int dai_flag = 0, sys_clk;
 	int err;
+	int i;	
 
-	if (tegra_das_is_port_master(tegra_audio_codec_type_hifi))
-		dai_flag |= SND_SOC_DAIFMT_CBM_CFM;
-	else
-		dai_flag |= SND_SOC_DAIFMT_CBS_CFS;
-
-	data_fmt = tegra_das_get_codec_data_fmt(tegra_audio_codec_type_hifi);
+	/* Get the requested sampling rate */
+	unsigned int srate = params_rate(params);
+	
+	/* I2S <-> DAC <-> DAS <-> DAP <-> CODEC
+	   -If DAP is master, codec will be slave */
+	int codec_is_master = !tegra_das_is_port_master(tegra_audio_codec_type_hifi);
+	
+	/* Get DAS dataformat - DAP is connecting to codec */
+	enum dac_dap_data_format data_fmt = tegra_das_get_codec_data_fmt(tegra_audio_codec_type_hifi);
 
 	/* We are supporting DSP and I2s format for now */
 	if (data_fmt & dac_dap_data_format_i2s)
 		dai_flag |= SND_SOC_DAIFMT_I2S;
 	else
 		dai_flag |= SND_SOC_DAIFMT_DSP_A;
+	
+	if (codec_is_master)
+		dai_flag |= SND_SOC_DAIFMT_CBM_CFM; /* codec is master */
+	else
+		dai_flag |= SND_SOC_DAIFMT_CBS_CFS;
+	
+	
+	pr_debug("%s(): format: 0x%08x\n", __FUNCTION__,params_format(params));
 
-	err = snd_soc_dai_set_fmt(codec_dai, dai_flag);
-	if (err < 0) {
-		pr_err("codec_dai fmt not set \n");
-		return err;
-	}
-
+	/* Set the CPU dai format. This will also set the clock rate in master mode */
 	err = snd_soc_dai_set_fmt(cpu_dai, dai_flag);
 	if (err < 0) {
 		pr_err("cpu_dai fmt not set \n");
 		return err;
 	}
 
-	sys_clk = clk_get_rate(ctx->dap_mclk);
-	err = snd_soc_dai_set_sysclk(codec_dai, 0, sys_clk, SND_SOC_CLOCK_IN);
+	err = snd_soc_dai_set_fmt(codec_dai, dai_flag);
 	if (err < 0) {
-		pr_err("codec_dai clock not set\n");
+		pr_err("codec_dai fmt not set \n");
 		return err;
 	}
+	
+	/* Get system clock */
+	sys_clk = clk_get_rate(ctx->dap_mclk);
 
+	/* Set CPU sysclock as the same - in Tegra, seems to be a NOP */
 	err = snd_soc_dai_set_sysclk(cpu_dai, 0, sys_clk, SND_SOC_CLOCK_IN);
 	if (err < 0) {
 		pr_err("cpu_dai clock not set\n");
 		return err;
 	}
+	
+	if (codec_is_master) {
+		pr_debug("%s(): codec in master mode\n",__FUNCTION__);
+		
+		/* If using port as slave (=codec as master), then we can use the
+		   codec PLL to get the other sampling rates */
+		
+		/* Try each one until success */
+		for (i = 0; i < ARRAY_SIZE(clocktab); i++) {
+		
+			if (clocktab[i].srate != srate) 
+				continue;
+				
+			if (snd_soc_dai_set_pll(codec_dai, 0, 0, sys_clk, clocktab[i].mclk) >= 0) {
+				/* Codec PLL is synthetizing this new clock */
+				sys_clk = clocktab[i].mclk;
+				break;
+			}
+		}
+		
+		if (i >= ARRAY_SIZE(clocktab)) {
+			pr_err("%s(): unable to set required MCLK for SYSCLK of %d, sampling rate: %d\n",__FUNCTION__,sys_clk,srate);
+			return -EINVAL;
+		}
+		
+	} else {
+		pr_debug("%s(): codec in slave mode\n",__FUNCTION__);
 
+		/* Disable codec PLL */
+		err = snd_soc_dai_set_pll(codec_dai, 0, 0, sys_clk, sys_clk);
+		if (err < 0) {
+			pr_err("%s(): unable to disable codec PLL\n",__FUNCTION__);
+			return err;
+		}
+		
+		/* Check this sampling rate can be achieved with this sysclk */
+		for (i = 0; i < ARRAY_SIZE(clocktab); i++) {
+		
+			if (clocktab[i].srate != srate) 
+				continue;
+				
+			if (sys_clk == clocktab[i].mclk)
+				break;
+		}
+		
+		if (i >= ARRAY_SIZE(clocktab)) {
+			pr_err("%s(): unable to get required %d hz sampling rate of %d hz SYSCLK\n",__FUNCTION__,srate,sys_clk);
+			return -EINVAL;
+		}
+	}
+
+	/* Set CODEC sysclk */
+	err = snd_soc_dai_set_sysclk(codec_dai, 0, sys_clk, SND_SOC_CLOCK_IN);
+	if (err < 0) {
+		pr_err("codec_dai clock not set\n");
+		return err;
+	}
+	
 	return 0;
 }
 
@@ -110,16 +221,13 @@ static int tegra_voice_hw_params(struct snd_pcm_substream *substream,
 	struct snd_soc_dai *codec_dai 	= rtd->dai->codec_dai;
 	struct snd_soc_dai *cpu_dai 	= rtd->dai->cpu_dai;
 	struct shuttle_audio_priv* ctx 	= rtd->socdev->codec_data;
-	enum dac_dap_data_format data_fmt;
+	
 	int dai_flag = 0, sys_clk;
 	int err;
 
-	if (tegra_das_is_port_master(tegra_audio_codec_type_bluetooth))
-		dai_flag |= SND_SOC_DAIFMT_CBM_CFM;
-	else
-		dai_flag |= SND_SOC_DAIFMT_CBS_CFS;
-
-	data_fmt = tegra_das_get_codec_data_fmt(tegra_audio_codec_type_bluetooth);
+	/* Get DAS dataformat and master flag */
+	int codec_is_master = !tegra_das_is_port_master(tegra_audio_codec_type_bluetooth);
+	enum dac_dap_data_format data_fmt = tegra_das_get_codec_data_fmt(tegra_audio_codec_type_bluetooth);
 
 	/* We are supporting DSP and I2s format for now */
 	if (data_fmt & dac_dap_data_format_dsp)
@@ -127,37 +235,52 @@ static int tegra_voice_hw_params(struct snd_pcm_substream *substream,
 	else
 		dai_flag |= SND_SOC_DAIFMT_I2S;
 
-	err = snd_soc_dai_set_fmt(codec_dai, dai_flag);
-	if (err < 0) {
-		pr_err("codec_dai fmt not set \n");
-		return err;
-	}
+	if (codec_is_master)
+		dai_flag |= SND_SOC_DAIFMT_CBM_CFM; /* codec is master */
+	else
+		dai_flag |= SND_SOC_DAIFMT_CBS_CFS;
 
+
+	pr_debug("%s(): format: 0x%08x\n", __FUNCTION__,params_format(params));
+
+	/* Set the CPU dai format. This will also set the clock rate in master mode */
 	err = snd_soc_dai_set_fmt(cpu_dai, dai_flag);
 	if (err < 0) {
 		pr_err("cpu_dai fmt not set \n");
 		return err;
 	}
 
-	sys_clk = clk_get_rate(ctx->dap_mclk);
-	err = snd_soc_dai_set_sysclk(codec_dai, 0, sys_clk, SND_SOC_CLOCK_IN);
+	/* Bluetooth Codec is always slave here */
+	err = snd_soc_dai_set_fmt(codec_dai, dai_flag);
 	if (err < 0) {
-		pr_err("cpu_dai clock not set\n");
+		pr_err("codec_dai fmt not set \n");
 		return err;
 	}
+	
+	/* Get system clock */
+	sys_clk = clk_get_rate(ctx->dap_mclk);
 
+	/* Set CPU sysclock as the same - in Tegra, seems to be a NOP */
 	err = snd_soc_dai_set_sysclk(cpu_dai, 0, sys_clk, SND_SOC_CLOCK_IN);
 	if (err < 0) {
 		pr_err("cpu_dai clock not set\n");
 		return err;
 	}
-
+	
+	/* Set CODEC sysclk */
+	err = snd_soc_dai_set_sysclk(codec_dai, 0, sys_clk, SND_SOC_CLOCK_IN);
+	if (err < 0) {
+		pr_err("cpu_dai clock not set\n");
+		return err;
+	}
+	
 	return 0;
 }
 
 static int tegra_spdif_hw_params(struct snd_pcm_substream *substream,
 					struct snd_pcm_hw_params *params)
 {
+	pr_debug("%s(): format: 0x%08x\n", __FUNCTION__,params_format(params));
 	return 0;
 }
 
@@ -230,6 +353,8 @@ static void tegra_audio_route(struct shuttle_audio_priv* ctx,
 	int is_call_mode   = (play_device    & SHUTTLE_AUDIO_DEVICE_VOICE) ||
 						 (capture_device & SHUTTLE_AUDIO_DEVICE_VOICE);
 
+	pr_debug("%s(): is_bt_sco_mode: %d, is_call_mode: %d\n", __FUNCTION__, is_bt_sco_mode, is_call_mode);
+	
 	if (is_call_mode && is_bt_sco_mode) {
 		tegra_das_set_connection(tegra_das_port_con_id_voicecall_with_bt);
 	}
@@ -442,12 +567,21 @@ static int tegra_das_controls_init(struct snd_soc_codec *codec)
 	return 0;
 }
 
+#ifndef SHUTTLE_MANUAL_CONTROL_OF_OUTPUTDEVICE
+
 /* ------- Headphone jack autodetection  -------- */
 static struct snd_soc_jack_pin tegra_jack_pins[] = {
 	/* Disable speaker when headphone is plugged in */
 	{
 		.pin = "Internal Speaker",
 		.mask = SND_JACK_HEADPHONE,
+		.invert = 1, /* Enable pin when status is not reported */
+	},
+	/* Enable headphone when status is reported */
+	{
+		.pin = "Headphone Jack",
+		.mask = SND_JACK_HEADPHONE,
+		.invert = 0, /* Enable pin when status is reported */
 	},
 };
 
@@ -456,8 +590,11 @@ static struct snd_soc_jack_gpio tegra_jack_gpios[] = {
 		.name = "headphone detect",
 		.report = SND_JACK_HEADPHONE,
 		.debounce_time = 150,
+		/*.gpio is filled in initialization from platform data */
 	}
 };
+
+#endif
 
 /*tegra machine dapm widgets */
 static const struct snd_soc_dapm_widget tegra_dapm_widgets[] = {
@@ -478,11 +615,13 @@ static const struct snd_soc_dapm_route audio_map[] = {
 	{"MIC1", NULL, "Mic Bias1"},
 };
 
+#ifdef SHUTTLE_MANUAL_CONTROL_OF_OUTPUTDEVICE
 static const struct snd_kcontrol_new tegra_controls[] = {
 	SOC_DAPM_PIN_SWITCH("Internal Speaker"),
 	SOC_DAPM_PIN_SWITCH("Headphone Jack"),
 	SOC_DAPM_PIN_SWITCH("Internal Mic"),
 };
+#endif
 
 /* Called from the i2s driver when resuming play. No need to do anything in this case */
 void tegra_jack_resume(void)
@@ -492,16 +631,15 @@ void tegra_jack_resume(void)
 static int tegra_codec_init(struct snd_soc_codec *codec)
 {
 	struct shuttle_audio_priv* ctx = codec->socdev->codec_data;
-	int err = 0,ret;
+	int ret = 0;
 
 	if (!ctx->init_done) {
-	
+		
 		/* Get and enable the DAP clock */
 		ctx->dap_mclk = tegra_das_get_dap_mclk();
 		if (!ctx->dap_mclk) {
 			pr_err("Failed to get dap mclk \n");
-			err = -ENODEV;
-			return err;
+			return -ENODEV;
 		}
 		clk_enable(ctx->dap_mclk);
 
@@ -515,10 +653,23 @@ static int tegra_codec_init(struct snd_soc_codec *codec)
 		snd_soc_dapm_new_controls(codec, tegra_dapm_widgets,
 					ARRAY_SIZE(tegra_dapm_widgets));
 
+#ifdef SHUTTLE_MANUAL_CONTROL_OF_OUTPUTDEVICE
+		/* Add specific shuttle controls */
+		ret = snd_soc_add_controls(codec, tegra_controls,
+					ARRAY_SIZE(tegra_controls));
+		if (ret < 0) {
+			pr_err("Failed to register controls\n");
+			return ret;
+		}
+#endif
+					
 		/* Set up tegra specific audio path audio_map */
 		snd_soc_dapm_add_routes(codec, audio_map,
 					ARRAY_SIZE(audio_map));
 
+		/* make sure to register the dapm widgets */
+		snd_soc_dapm_new_widgets(codec);
+					
 		/* Set endpoints to not connected */
 		snd_soc_dapm_nc_pin(codec, "LINEL");
 		snd_soc_dapm_nc_pin(codec, "LINER");
@@ -532,9 +683,12 @@ static int tegra_codec_init(struct snd_soc_codec *codec)
 		snd_soc_dapm_disable_pin(codec, "Headphone Jack");
 	
 		ret = snd_soc_dapm_sync(codec);
-		if (ret)
+		if (ret) {
+			pr_err("Failed to sync\n");
 			return ret;
-	
+		}
+
+#ifndef SHUTTLE_MANUAL_CONTROL_OF_OUTPUTDEVICE
 		/* Headphone jack detection */		
 		ret = snd_soc_jack_new(codec->socdev->card, "Headphone Jack", SND_JACK_HEADPHONE,
 				 &ctx->tegra_jack);
@@ -552,11 +706,12 @@ static int tegra_codec_init(struct snd_soc_codec *codec)
 			       tegra_jack_gpios);
 		if (ret)
 			return ret;
+#endif
 
 		ctx->init_done = 1;
 	}
 
-	return err;
+	return ret;
 }
 
 extern struct snd_soc_dai tegra_generic_codec_dai[];
