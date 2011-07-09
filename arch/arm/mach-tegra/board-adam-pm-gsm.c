@@ -63,12 +63,14 @@ static void __adam_pm_gsm_toggle_radio(struct device *dev, unsigned int on)
 		regulator_enable(gsm_data->regulator[0]);
 		regulator_enable(gsm_data->regulator[1]);
 	
-		/* 3G/GPS power on sequence */
-		adam_3g_gps_poweron();
+		gpio_set_value(ADAM_3G_DISABLE, 0);
 
 	} else {
 	
-		adam_3g_gps_poweroff();
+//W_DISABLE=PB0
+// EN_3G=PJ2
+		gpio_set_value(ADAM_3G_DISABLE, 1);
+		//adam_3g_gps_poweroff();
 				
 		regulator_disable(gsm_data->regulator[1]);
 		regulator_disable(gsm_data->regulator[0]);
@@ -217,7 +219,9 @@ static int __init adam_gsm_probe(struct platform_device *pdev)
 	gsm_data->regulator[1] = regulator[1];
 	
 	/* Init control pins */
-	adam_3g_gps_init();
+	gpio_request(ADAM_3G_DISABLE, "gsm_disable");
+	gpio_direction_output(ADAM_3G_DISABLE, 1);
+//	adam_3g_gps_init();
 
 	/* register rfkill interface */
 	rfkill = rfkill_alloc(pdev->name, &pdev->dev, RFKILL_TYPE_WWAN,
@@ -277,7 +281,7 @@ static int adam_gsm_remove(struct platform_device *pdev)
 
 	return 0;
 }
-static struct platform_driver adam_gsm_driver = {
+static struct platform_driver adam_gsm_driver_ops = {
 	.probe		= adam_gsm_probe,
 	.remove		= adam_gsm_remove,
 	.suspend	= adam_gsm_suspend,
@@ -289,12 +293,12 @@ static struct platform_driver adam_gsm_driver = {
 
 static int __devinit adam_gsm_init(void)
 {
-	return platform_driver_register(&adam_gsm_driver);
+	return platform_driver_register(&adam_gsm_driver_ops);
 }
 
 static void adam_gsm_exit(void)
 {
-	platform_driver_unregister(&adam_gsm_driver);
+	platform_driver_unregister(&adam_gsm_driver_ops);
 }
 
 module_init(adam_gsm_init);

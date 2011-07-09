@@ -31,16 +31,16 @@
 #include "devices.h"
 #include "board-adam.h"
 
-static struct tegra_sdhci_platform_data tegra_sdhci_platform_data1 = {
+static struct tegra_sdhci_platform_data tegra_sdhci_platform_data2 = {
 	.cd_gpio = -1,
 	.wp_gpio = -1,
 	.power_gpio = -1,
 };
 
-static struct tegra_sdhci_platform_data tegra_sdhci_platform_data2 = {
-	.cd_gpio = ADAM_SDIO2_CD,
+static struct tegra_sdhci_platform_data tegra_sdhci_platform_data3 = {
+	.cd_gpio = ADAM_SDHC_CD,
 	.wp_gpio = -1,
-	.power_gpio = ADAM_SDIO2_POWER,
+	.power_gpio = ADAM_SDHC_POWER,
 };
 
 static void (*wlan_status_cb)(int card_present, void *dev_id) = NULL;
@@ -101,9 +101,9 @@ void adam_wifi_set_cd(int val)
 EXPORT_SYMBOL_GPL(adam_wifi_set_cd);
 
 static struct tegra_sdhci_platform_data tegra_sdhci_platform_data4 = {
-	.cd_gpio = ADAM_SDHC_CD,
-	.wp_gpio = ADAM_SDHC_WP,
-	.power_gpio = ADAM_SDHC_POWER,
+	.cd_gpio = -1,
+	.wp_gpio = -1,
+	.power_gpio = -1,
 };
 
 static struct platform_device *adam_sdhci_devices[] __initdata = {
@@ -117,23 +117,23 @@ static struct platform_device *adam_sdhci_devices[] __initdata = {
 int __init adam_sdhci_register_devices(void)
 {
 	/* Plug in platform data */
-	tegra_sdhci_device1.dev.platform_data = &tegra_sdhci_platform_data1;
+	tegra_sdhci_device1.dev.platform_data = &adam_wlan_data; 
 	tegra_sdhci_device2.dev.platform_data = &tegra_sdhci_platform_data2;
-	tegra_sdhci_device3.dev.platform_data = &adam_wlan_data;
+	tegra_sdhci_device3.dev.platform_data = &tegra_sdhci_platform_data3;
 	tegra_sdhci_device4.dev.platform_data = &tegra_sdhci_platform_data4;
 
-	gpio_request(tegra_sdhci_platform_data1.power_gpio, "sdhci2_power");
-	gpio_request(tegra_sdhci_platform_data1.cd_gpio, "sdhci2_cd");
+//	gpio_request(tegra_sdhci_platform_data1.power_gpio, "sdhci0_power");
+//	gpio_request(tegra_sdhci_platform_data1.cd_gpio, "sdhci0_cd");
 
-	gpio_request(tegra_sdhci_platform_data4.power_gpio, "sdhci4_power");
-	gpio_request(tegra_sdhci_platform_data4.cd_gpio, "sdhci4_cd");
+	gpio_request(tegra_sdhci_platform_data3.power_gpio, "sdhci3_power");
+	gpio_request(tegra_sdhci_platform_data3.cd_gpio, "sdhci3_cd");
 	//gpio_request(tegra_sdhci_platform_data4.wp_gpio, "sdhci4_wp");
 
-	gpio_direction_output(tegra_sdhci_platform_data2.power_gpio, 1);
-	gpio_direction_output(tegra_sdhci_platform_data4.power_gpio, 1);
-	gpio_direction_input(tegra_sdhci_platform_data2.cd_gpio);
-	gpio_direction_input(tegra_sdhci_platform_data4.cd_gpio);
-	gpio_direction_input(tegra_sdhci_platform_data4.wp_gpio);
+//	gpio_direction_output(tegra_sdhci_platform_data2.power_gpio, 1);
+	gpio_direction_output(tegra_sdhci_platform_data3.power_gpio, 1);
+//	gpio_direction_input(tegra_sdhci_platform_data2.cd_gpio);
+	gpio_direction_input(tegra_sdhci_platform_data3.cd_gpio);
+//	gpio_direction_input(tegra_sdhci_platform_data4.wp_gpio);
 	
 	return platform_add_devices(adam_sdhci_devices, ARRAY_SIZE(adam_sdhci_devices));
 

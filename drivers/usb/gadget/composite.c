@@ -22,6 +22,7 @@
 
 #include <linux/kallsyms.h>
 #include <linux/kernel.h>
+#include <linux/delay.h>
 #include <linux/slab.h>
 #include <linux/device.h>
 

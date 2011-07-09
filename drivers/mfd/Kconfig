@@ -336,7 +336,7 @@ config MFD_WM831X
 config MFD_NVEC
 	bool "Support for NVidia Embedded controller"
 	select MFD_CORE
-	depends on MACH_SHUTTLE || MACH_BETELGEUSE
+	depends on MACH_SHUTTLE || MACH_BETELGEUSE || MACH_ADAM
 	help
 	  Support for the NVidia embedded controller used on several
 	  Tegra2 based boards. 

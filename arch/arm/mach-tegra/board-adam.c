@@ -92,44 +92,44 @@ static int __init parse_tag_nvidia(const struct tag *tag)
 }
 __tagtable(ATAG_NVIDIA, parse_tag_nvidia);
 
-static atomic_t adam_3g_gps_powered = ATOMIC_INIT(0);
-void adam_3g_gps_poweron(void)
+static atomic_t adam_gps_mag_powered = ATOMIC_INIT(0);
+void adam_gps_mag_poweron(void)
 {
-	if (atomic_inc_return(&adam_3g_gps_powered) == 1) {
-		pr_info("Enabling 3G/GPS module\n");
+	if (atomic_inc_return(&adam_gps_mag_powered) == 1) {
+		pr_info("Enabling GPS/Magnetic module\n");
 		/* 3G/GPS power on sequence */
-		gpio_set_value(ADAM_3GGPS_DISABLE, 0); /* Enable power */
+		gpio_set_value(ADAM_GPSMAG_DISABLE, 0); /* Enable power */
 		msleep(2);
 	}
 }
-EXPORT_SYMBOL_GPL(adam_3g_gps_poweron);
+EXPORT_SYMBOL_GPL(adam_gps_mag_poweron);
 
-void adam_3g_gps_poweroff(void)
+void adam_gps_mag_poweroff(void)
 {
-	if (atomic_dec_return(&adam_3g_gps_powered) == 0) {
-		pr_info("Disabling 3G/GPS module\n");
+	if (atomic_dec_return(&adam_gps_mag_powered) == 0) {
+		pr_info("Disabling GPS/Magnetic module\n");
 		/* 3G/GPS power on sequence */
-		gpio_set_value(ADAM_3GGPS_DISABLE, 1); /* Disable power */
+		gpio_set_value(ADAM_GPSMAG_DISABLE, 1); /* Disable power */
 		msleep(2);
 	}
 }
-EXPORT_SYMBOL_GPL(adam_3g_gps_poweroff);
+EXPORT_SYMBOL_GPL(adam_gps_mag_poweroff);
 
-static atomic_t adam_3g_gps_inited = ATOMIC_INIT(0);
-void adam_3g_gps_init(void)
+static atomic_t adam_gps_mag_inited = ATOMIC_INIT(0);
+void adam_gps_mag_init(void)
 {
-	if (atomic_inc_return(&adam_3g_gps_inited) == 1) {
-		gpio_request(ADAM_3GGPS_DISABLE, "gps_disable");
-		gpio_direction_output(ADAM_3GGPS_DISABLE, 1);
+	if (atomic_inc_return(&adam_gps_mag_inited) == 1) {
+		gpio_request(ADAM_GPSMAG_DISABLE, "gps_disable");
+		gpio_direction_output(ADAM_GPSMAG_DISABLE, 1);
 	}
 }
-EXPORT_SYMBOL_GPL(adam_3g_gps_init);
+EXPORT_SYMBOL_GPL(adam_gps_mag_init);
 
-void adam_3g_gps_deinit(void)
+void adam_gps_mag_deinit(void)
 {
-	atomic_dec(&adam_3g_gps_inited);
+	atomic_dec(&adam_gps_mag_inited);
 }
-EXPORT_SYMBOL_GPL(adam_3g_gps_deinit);
+EXPORT_SYMBOL_GPL(adam_gps_mag_deinit);
 
 static struct tegra_suspend_platform_data adam_suspend = {
 	.cpu_timer = 5000,
@@ -160,7 +160,7 @@ static void __init tegra_adam_init(void)
 #endif
 
 	/* force consoles to stay enabled across suspend/resume */
-	// console_suspend_enabled = 0;
+	// console_suspend_enabled = 0;	
 
 	/* Init the suspend information */
 	tegra_init_suspend(&adam_suspend);
@@ -182,58 +182,58 @@ static void __init tegra_adam_init(void)
 	adam_pinmux_init();
 
 	/* Register i2c devices - required for Power management and MUST be done before the power register */
-	adam_i2c_register_devices();
+	//adam_i2c_register_devices();
 
 	/* Register the power subsystem - Including the poweroff handler - Required by all the others */
-	adam_power_register_devices();
+	//adam_power_register_devices();
 	
 	/* Register the USB device */
-	adam_usb_register_devices();
+	//adam_usb_register_devices();
 
 	/* Register UART devices */
-	adam_uart_register_devices();
+//	adam_uart_register_devices();
 	
 	/* Register SPI devices */
-	adam_spi_register_devices();
+//	adam_spi_register_devices();
 
 	/* Register GPU devices */
 	adam_gpu_register_devices();
 
 	/* Register Audio devices */
-	adam_audio_register_devices();
+//	adam_audio_register_devices();
 
 	/* Register AES encryption devices */
-	adam_aes_register_devices();
+//	adam_aes_register_devices();
 
 	/* Register Watchdog devices */
-	adam_wdt_register_devices();
+//	adam_wdt_register_devices();
 
 	/* Register all the keyboard devices */
-	adam_keyboard_register_devices();
+//	adam_keyboard_register_devices();
 	
 	/* Register touchscreen devices */
-	adam_touch_register_devices();
+//	adam_touch_register_devices();
 	
 	/* Register SDHCI devices */
-	adam_sdhci_register_devices();
+//	adam_sdhci_register_devices();
 
 	/* Register accelerometer device */
-	adam_sensors_register_devices();
+//	adam_sensors_register_devices();
 	
 	/* Register wlan powermanagement devices */
-	adam_wlan_pm_register_devices();
+//	adam_wlan_pm_register_devices();
 	
 	/* Register gps powermanagement devices */
-	adam_gps_pm_register_devices();
+//	adam_gps_pm_register_devices();
 
 	/* Register gsm powermanagement devices */
-	adam_gsm_pm_register_devices();
+//	adam_gsm_pm_register_devices();
 	
 	/* Register Bluetooth powermanagement devices */
-	adam_bt_pm_register_devices();
+//	adam_bt_pm_register_devices();
 
 	/* Register Camera powermanagement devices */
-	adam_camera_pm_register_devices();
+//	adam_camera_pm_register_devices();
 
 	/* Register NAND flash devices */
 	adam_nand_register_devices();
@@ -262,7 +262,7 @@ static void __init tegra_adam_reserve(void)
 static void __init tegra_adam_fixup(struct machine_desc *desc,
 	struct tag *tags, char **cmdline, struct meminfo *mi)
 {
-	mi->nr_banks = 2;
+	mi->nr_banks = ADAM_MEM_BANKS;
 	mi->bank[0].start = PHYS_OFFSET;
 #if defined(DYNAMIC_GPU_MEM)
 	mi->bank[0].size  = ADAM_MEM_SIZE;
@@ -270,8 +270,8 @@ static void __init tegra_adam_fixup(struct machine_desc *desc,
 	mi->bank[0].size  = ADAM_MEM_SIZE - ADAM_GPU_MEM_SIZE;
 #endif
 	// Adam has two 512MB banks. Easier to hardcode if we leave ADAM_MEM_SIZE at 512MB
-	mr->bank[1].start = ADAM_MEM_SIZE;
-	mr->bank[1].size = ADAM_MEM_SIZE,
+	mi->bank[1].start = ADAM_MEM_SIZE;
+	mi->bank[1].size = ADAM_MEM_SIZE;
 } 
 
 MACHINE_START(HARMONY, "harmony")

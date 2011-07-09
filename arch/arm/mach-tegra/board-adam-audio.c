@@ -56,9 +56,9 @@
 /* Default music path: I2S1(DAC1)<->Dap1<->HifiCodec
    Bluetooth to codec: I2S2(DAC2)<->Dap4<->Bluetooth
 */
-/* For Shuttle, 
+/* For Adam, 
 	Codec is ALC5624
-	Codec I2C Address = 0x30(includes R/W bit), i2c #0
+	Codec I2C Address = 0x34(includes R/W bit), i2c #0
 	Codec MCLK = APxx DAP_MCLK1
 */
 
@@ -74,7 +74,7 @@ static struct tegra_das_platform_data tegra_das_pdata = {
 			.device_property = {
 				.num_channels = 2,
 				.bits_per_sample = 16,
-				.rate = 44100,
+				.rate = 48000,
 				.dac_dap_data_comm_format =
 						dac_dap_data_format_all,
 			},
@@ -135,19 +135,29 @@ static struct tegra_das_platform_data tegra_das_pdata = {
 		[0] = {
 			.con_id = tegra_das_port_con_id_hifi,
 			.num_entries = 2,
-			.con_line = {
-				[0] = {tegra_das_port_i2s1, tegra_das_port_dap1, true},
+			.con_line = { /*src*/            /*dst*/             /* src master */
+#ifdef ALC5624_IS_MASTER			
+				[0] = {tegra_das_port_i2s1, tegra_das_port_dap1, true}, 
 				[1] = {tegra_das_port_dap1, tegra_das_port_i2s1, false},
+#else
+				[0] = {tegra_das_port_i2s1, tegra_das_port_dap1, false}, 
+				[1] = {tegra_das_port_dap1, tegra_das_port_i2s1, true},
+#endif
 			},
 		},
 		[1] = {
 			.con_id = tegra_das_port_con_id_bt_codec,
 			.num_entries = 4,
 			.con_line = {
-				[0] = {tegra_das_port_i2s2, tegra_das_port_dap4, true},
+				[0] = {tegra_das_port_i2s2, tegra_das_port_dap4, true}, /* src is master */
 				[1] = {tegra_das_port_dap4, tegra_das_port_i2s2, false},
+#ifdef ALC5624_IS_MASTER
 				[2] = {tegra_das_port_i2s1, tegra_das_port_dap1, true},
 				[3] = {tegra_das_port_dap1, tegra_das_port_i2s1, false},
+#else				
+				[2] = {tegra_das_port_i2s1, tegra_das_port_dap1, false},
+				[3] = {tegra_das_port_dap1, tegra_das_port_i2s1, true},
+#endif				
 			},
 		},
 		[2] = {
@@ -156,8 +166,13 @@ static struct tegra_das_platform_data tegra_das_pdata = {
 			.con_line = {
 				[0] = {tegra_das_port_dap2, tegra_das_port_dap3, true},
 				[1] = {tegra_das_port_dap3, tegra_das_port_dap2, false},
+#ifdef ALC5624_IS_MASTER
 				[2] = {tegra_das_port_i2s1, tegra_das_port_dap1, true},
 				[3] = {tegra_das_port_dap1, tegra_das_port_i2s1, false},
+#else
+				[2] = {tegra_das_port_i2s1, tegra_das_port_dap1, false},
+				[3] = {tegra_das_port_dap1, tegra_das_port_i2s1, true},
+#endif
 			},
 		},
 	}
@@ -167,54 +182,65 @@ static struct tegra_das_platform_data tegra_das_pdata = {
 static struct tegra_audio_platform_data tegra_spdif_pdata = {
 	.dma_on = true,  /* use dma by default */
 #if LINUX_VERSION_CODE == KERNEL_VERSION(2,6,36)
-	.spdif_clk_rate = 5644800,
+	.spdif_clk_rate = 6144000,
 #endif
 };
 
 static struct tegra_audio_platform_data tegra_audio_pdata[] = {
-	/* For I2S1 */
+	/* For I2S1 - Hifi */
 	[0] = {
-		.i2s_master	= true,
-		.dma_on		= true,  /* use dma by default */
-		.i2s_master_clk = 44100,
-		.dsp_master_clk = 44100,
-		.i2s_clk_rate	= 2822400,
-		.dap_clk	= "clk_dev1",
+#ifdef ALC5624_IS_MASTER
+		.i2s_master		= false,	/* CODEC is master for audio */
+		.dma_on			= true,  	/* use dma by default */
+		.i2s_clk_rate 	= 2822400,
+		.dap_clk	  	= "clk_dev1",
 		.audio_sync_clk = "audio_2x",
-		.mode		= I2S_BIT_FORMAT_I2S,
-		.fifo_fmt	= I2S_FIFO_PACKED,
-		.bit_size	= I2S_BIT_SIZE_16,
-		.i2s_bus_width = 32,
-		.dsp_bus_width = 16,
+		.mode			= I2S_BIT_FORMAT_I2S,
+		.fifo_fmt		= I2S_FIFO_16_LSB,
+		.bit_size		= I2S_BIT_SIZE_16,
+#else
+		.i2s_master		= true,		/* CODEC is slave for audio */
+		.dma_on			= true,  	/* use dma by default */
+		.i2s_master_clk = 48000,
+		.i2s_clk_rate 	= 12288000,
+		.dap_clk	  	= "clk_dev1",
+		.audio_sync_clk = "audio_2x",
+		.mode			= I2S_BIT_FORMAT_I2S,
+		.fifo_fmt		= I2S_FIFO_PACKED,
+		.bit_size		= I2S_BIT_SIZE_16,
+		.i2s_bus_width	= 32,
+#endif
 	},
-	/* For I2S2 */
+	/* For I2S2 - Bluetooth */
 	[1] = {
-		.i2s_master	= true,
-		.dma_on		= true,  /* use dma by default */
+		.i2s_master		= true,
+		.dma_on			= true,  /* use dma by default */
 		.i2s_master_clk = 8000,
 		.dsp_master_clk = 8000,
 		.i2s_clk_rate	= 2000000,
-		.dap_clk	= "clk_dev1",
+		.dap_clk		= "clk_dev1",
 		.audio_sync_clk = "audio_2x",
-		.mode		= I2S_BIT_FORMAT_DSP,
-		.fifo_fmt	= I2S_FIFO_16_LSB,
-		.bit_size	= I2S_BIT_SIZE_16,
-		.i2s_bus_width = 32,
-		.dsp_bus_width = 16,
+		.mode			= I2S_BIT_FORMAT_DSP,
+		.fifo_fmt		= I2S_FIFO_16_LSB,
+		.bit_size		= I2S_BIT_SIZE_16,
+		.i2s_bus_width 	= 32,
+		.dsp_bus_width 	= 16,
 	}
 }; 
 
 static struct alc5624_platform_data alc5624_pdata = {
 #if LINUX_VERSION_CODE == KERNEL_VERSION(2,6,36)
-	.mclk = "clk_dev1",
+	.mclk 		= "clk_dev1",
 #else
-	.mclk = "cdev1",
+	.mclk 		= "cdev1",
 #endif
+	.spkvdd_mv 	= 5000,	/* Speaker Vdd in millivolts */
+	.hpvdd_mv 	= 3300,	/* Headphone Vdd in millivolts */
 };
 
 static struct i2c_board_info __initdata adam_i2c_bus0_board_info[] = {
 	{
-		I2C_BOARD_INFO("alc5624", 0x18),
+		I2C_BOARD_INFO("alc5624", 0x34),
 		.platform_data = &alc5624_pdata,
 	},
 };

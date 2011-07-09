@@ -272,7 +272,7 @@ static int adam_bt_remove(struct platform_device *pdev)
 	kfree(bt_data);
 	return 0;
 }
-static struct platform_driver adam_bt_driver = {
+static struct platform_driver adam_bt_driver_ops = {
 	.probe		= adam_bt_probe,
 	.remove		= adam_bt_remove,
 	.suspend	= adam_bt_suspend,
@@ -284,12 +284,12 @@ static struct platform_driver adam_bt_driver = {
 
 static int __devinit adam_bt_init(void)
 {
-	return platform_driver_register(&adam_bt_driver);
+	return platform_driver_register(&adam_bt_driver_ops);
 }
 
 static void adam_bt_exit(void)
 {
-	platform_driver_unregister(&adam_bt_driver);
+	platform_driver_unregister(&adam_bt_driver_ops);
 }
 
 module_init(adam_bt_init);

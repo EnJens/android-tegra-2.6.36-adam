@@ -392,13 +392,11 @@ static struct tegra_nand_chip_parms adam_nand_chip_parms[] = {
 
 /*
 	Default NAND layout is:
-	2048K@6784K(misc)
-	5120K@9344K(recovery),
-	8192K@14976K(boot),
-	125440K@23680K(system),
-	32768K@149632K(cache),
-	4096K@182912K(staging),
-	336256K@187520K(userdata)
+	16384K@9984K(misc)
+	16384K@26880K(recovery)
+	16384K@43776K(boot)
+	204800K@60672K(system)
+	781952K@266112K(cache)
 	
 	Can be overriden from the command line
 */
@@ -406,40 +404,30 @@ static struct tegra_nand_chip_parms adam_nand_chip_parms[] = {
 static struct mtd_partition adam_nand_partitions[] = {
 	[0] = {
 		.name		= "misc",
-		.offset		=  6784*1024,
-		.size		=  2048*1024,
+		.offset		=  9984*1024,
+		.size		=  16384*1024,
 		.mask_flags	= MTD_WRITEABLE, /* r/o */
 	},
 	[1] = {
 		.name		= "recovery",
-		.offset		=  9344*1024,
-		.size		=  5120*1024,
+		.offset		=  26880*1024,
+		.size		=  16384*1024,
 		.mask_flags	= MTD_WRITEABLE, /* r/o */
 	},
 	[2] = {
 		.name		= "boot",
-		.offset		= 14976*1024,
-		.size		=  8192*1024,
+		.offset		=  43776*1024,
+		.size		=  16384*1024,
 	},
 	[3] = {
 		.name		= "system",
-		.offset		=  23680*1024,
-		.size		= 125440*1024,
+		.offset		=  60672*1024,
+		.size		= 204800*1024,
 	},
 	[4] = {
 		.name		= "cache",
-		.offset		= 149632*1024,
-		.size		=  32768*1024,
-	},
-	[5] = {
-		.name		= "staging",
-		.offset		= 182912*1024,
-		.size		=   4096*1024,
-	},
-	[6] = {
-		.name		= "userdata",
-		.offset		= 187520*1024,
-		.size		= 336256*1024,
+		.offset		= 266112*1024,
+		.size		=  781952*1024,
 	},
 };
 

@@ -68,7 +68,8 @@ static struct regulator_consumer_supply tps658621_sm2_supply[] = {
 /* PEX_CLK voltage rail : VDDIO_PEX_CLK -> LDO0
 */
 static struct regulator_consumer_supply tps658621_ldo0_supply[] = { /* VDDIO_PEX_CLK */
-	REGULATOR_SUPPLY("vdd_pex_clk_1", NULL)
+	REGULATOR_SUPPLY("vdd_pex_clk_1", NULL),
+	REGULATOR_SUPPLY("vcore_wifi", NULL),
 };
 
 /* PLLA voltage rail : AVDDPLLX_1V2 -> LDO1AVDDPLLX_1V2 -> LDO1
@@ -112,7 +113,6 @@ static struct regulator_consumer_supply tps658621_ldo3_supply[] = { /* 3V3 */
 	REGULATOR_SUPPLY("vddio_nand_3v3", NULL), // AON
 	REGULATOR_SUPPLY("sdio", NULL), /* vddio_sdio */
 	REGULATOR_SUPPLY("vmmc", NULL), /* vddio_mmc, but sdhci.c requires it to be called vmmc*/
-	REGULATOR_SUPPLY("vddio_vi", NULL),
 	REGULATOR_SUPPLY("avdd_lvds", NULL),	
 	REGULATOR_SUPPLY("tmon0", NULL),
 };
@@ -139,7 +139,9 @@ static struct regulator_consumer_supply tps658621_ldo4_supply[] = { /* VDD IO VI
 	REGULATOR_SUPPLY("vddio_ddr", NULL),       //AON
 	REGULATOR_SUPPLY("vddio_uart", NULL),      //AON
 	REGULATOR_SUPPLY("vddio_bb", NULL),        //AON
+	REGULATOR_SUPPLY("tmon1.8vs", NULL),
 	REGULATOR_SUPPLY("vddhostif_bt", NULL),	
+	REGULATOR_SUPPLY("wifi3vs", NULL),
 	REGULATOR_SUPPLY("vddio_wlan", NULL)
 };
 
@@ -172,6 +174,7 @@ static struct regulator_consumer_supply tps658621_ldo8_supply[] = { /* AVDD_HDMI
 */
 static struct regulator_consumer_supply tps658621_ldo9_supply[] = {
 	REGULATOR_SUPPLY("vdd_ddr_rx", NULL),
+	REGULATOR_SUPPLY("vddio_vi", NULL),
 };
 
 static struct regulator_consumer_supply tps658621_rtc_supply[] = {
@@ -507,7 +510,7 @@ static void reg_off(const char *reg)
 static void adam_power_off(void)
 {
 	/* Power down through NvEC */
-	nvec_poweroff();
+	//nvec_poweroff();
 	
 	/* Then try by powering off supplies */
 	reg_off("vdd_sm2");
@@ -552,7 +555,7 @@ static struct platform_device *adam_power_devices[] __initdata = {
 #else
 	&pmu_device,
 #endif
-	&adam_nvec_mfd,
+	//&adam_nvec_mfd,
 	&tegra_rtc_device,	
 };
 
@@ -577,7 +580,7 @@ int __init adam_power_register_devices(void)
 	pm_power_off = adam_power_off;		
 
 	/* signal that power regulators have fully specified constraints */
-	regulator_has_full_constraints();
+	//regulator_has_full_constraints();
 	
 	/* register all pm devices - This must come AFTER the registration of the TPS i2c interfase,
 	   as we need the GPIO definitions exported by that driver */

@@ -205,7 +205,7 @@ static int adam_camera_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver adam_camera_driver = {
+static struct platform_driver adam_camera_driver_ops = {
 	.probe		= adam_camera_probe,
 	.remove		= adam_camera_remove,
 	.suspend	= adam_camera_suspend,
@@ -217,12 +217,12 @@ static struct platform_driver adam_camera_driver = {
 
 static int __devinit adam_camera_init(void)
 {
-	return platform_driver_register(&adam_camera_driver);
+	return platform_driver_register(&adam_camera_driver_ops);
 }
 
 static void adam_camera_exit(void)
 {
-	platform_driver_unregister(&adam_camera_driver);
+	platform_driver_unregister(&adam_camera_driver_ops);
 }
 
 module_init(adam_camera_init);

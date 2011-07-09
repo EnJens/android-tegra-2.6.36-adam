@@ -52,3 +52,15 @@ config SND_TEGRA_SOC_SHUTTLE
 	help
 	  Say Y or M here if you want to add support for SoC audio on the
 	  Shuttle (P10AN01) Tablet PCs. 
+
+config SND_TEGRA_SOC_ADAM
+	tristate "SoC Audio support for Notion Ink Adam Tablet PCs"
+	depends on SND_TEGRA_SOC && MACH_ADAM && I2C
+	default m
+	select SND_TEGRA_SOC_I2S
+	select SND_TEGRA_SOC_IEC
+	select SND_TEGRA_SOC_PCM
+	select SND_SOC_ALC5624
+	help
+	  Say Y or M here if you want to add support for SoC audio on the
+	  Notion Ink Adam Tablet PCs.

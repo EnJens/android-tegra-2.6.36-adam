@@ -154,94 +154,6 @@ static int adam_hdmi_disable(void)
 
 #define TEGRA_ROUND_ALLOC(x) (((x) + 4095) & ((unsigned)(-4096)))
 
-#if defined(ADAM_1280x800PANEL_1)
-/* Panel same as Motorola Xoom (tm) */
-
-/* Frame buffer size assuming 16bpp color */
-#define ADAM_FB_SIZE TEGRA_ROUND_ALLOC(1280*800*(16/8)*ADAM_FB_PAGES)
-
-static struct tegra_dc_mode adam_panel_modes[] = {
-	{
-		.pclk = 62200000,
-		.h_ref_to_sync = 16,
-		.v_ref_to_sync = 1,
-		.h_sync_width = 58,
-		.v_sync_width = 40,
-		.h_back_porch = 58,
-		.v_back_porch = 20,
-		.h_active = 1280,
-		.v_active = 800,
-		.h_front_porch = 58,
-		.v_front_porch = 1,
-	},
-};
-
-static struct tegra_fb_data adam_fb_data = {
-	.win		= 0,
-	.xres		= 1280,
-	.yres		= 800,
-	.bits_per_pixel	= 16, 
-};
-
-#elif defined(ADAM_1280x800PANEL_2)
-/* If using 1280x800 panel (panel upgrade) */
-
-/* Frame buffer size assuming 16bpp color */
-#define ADAM_FB_SIZE TEGRA_ROUND_ALLOC(1280*800*(16/8)*ADAM_FB_PAGES)
-
-static struct tegra_dc_mode adam_panel_modes[] = {
-	{
-		.pclk = 65000000,
-		.h_ref_to_sync = 11,
-		.v_ref_to_sync = 1,
-		.h_sync_width = 26,
-		.v_sync_width = 6,
-		.h_back_porch = 12,
-		.v_back_porch = 3,
-		.h_active = 1280,
-		.v_active = 800,
-		.h_front_porch = 45,
-		.v_front_porch = 3,
-	},
-};
-
-static struct tegra_fb_data adam_fb_data = {
-	.win		= 0,
-	.xres		= 1280,
-	.yres		= 800,
-	.bits_per_pixel	= 16,
-};
-
-#elif defined(ADAM_1366x768PANEL)
-
-/* Frame buffer size assuming 16bpp color */
-#define ADAM_FB_SIZE TEGRA_ROUND_ALLOC(1368*768*(16/8)*ADAM_FB_PAGES)
-
-static struct tegra_dc_mode adam_panel_modes[] = {
-	{
-		.pclk = 62200000,
-		.h_ref_to_sync = 11,
-		.v_ref_to_sync = 1,
-		.h_sync_width = 58,
-		.v_sync_width = 4,
-		.h_back_porch = 58,
-		.v_back_porch = 4,
-		.h_active = 1366,
-		.v_active = 768,
-		.h_front_porch = 58,
-		.v_front_porch = 4,
-	},
-};
-
-static struct tegra_fb_data adam_fb_data = {
-	.win		= 0,
-	.xres		= 1366,
-	.yres		= 768,
-	.bits_per_pixel	= 16,
-};
-
-#elif defined(ADAM_1024x600PANEL1)
-
 /* If using 1024x600 panel (Shuttle default panel) */
 
 /* Frame buffer size assuming 16bpp color */
@@ -269,36 +181,6 @@ static struct tegra_fb_data adam_fb_data = {
 	.yres		= 600,
 	.bits_per_pixel	= 16,
 };
-
-#else
-
-/* Frame buffer size assuming 16bpp color */
-#define ADAM_FB_SIZE TEGRA_ROUND_ALLOC(1024*600*(16/8)*ADAM_FB_PAGES)
-
-static struct tegra_dc_mode adam_panel_modes[] = {
-	{
-		.pclk = 62200000,
-		.h_ref_to_sync = 11,
-		.v_ref_to_sync = 1,
-		.h_sync_width = 26,
-		.v_sync_width = 6,
-		.h_back_porch = 12,
-		.v_back_porch = 3,
-		.h_active = 1024,
-		.v_active = 600,
-		.h_front_porch = 45,
-		.v_front_porch = 3,
-	},
-};
-
-static struct tegra_fb_data adam_fb_data = {
-	.win		= 0,
-	.xres		= 1024,
-	.yres		= 600,
-	.bits_per_pixel	= 16,
-};
-
-#endif
 
 #if defined(ADAM_1920x1080HDMI)
 
@@ -369,7 +251,7 @@ static struct tegra_dc_platform_data adam_hdmi_pdata = {
 
 /* Estimate memory layout for GPU */
 #define ADAM_GPU_MEM_START	(ADAM_MEM_SIZE - ADAM_GPU_MEM_SIZE)
-#define ADAM_FB_BASE		 	(ADAM_GPU_MEM_START)
+#define ADAM_FB_BASE		(ADAM_GPU_MEM_START)
 #define ADAM_FB_HDMI_BASE 	(ADAM_GPU_MEM_START + ADAM_FB_SIZE)
 #define ADAM_CARVEOUT_BASE 	(ADAM_GPU_MEM_START + ADAM_FB_SIZE + ADAM_FB_HDMI_SIZE)
 #define ADAM_CARVEOUT_SIZE	(ADAM_MEM_SIZE - ADAM_CARVEOUT_BASE)

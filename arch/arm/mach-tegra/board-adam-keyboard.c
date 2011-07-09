@@ -56,13 +56,13 @@ static struct gpio_keys_button adam_keys[] = {
 		.desc = "power",
 	},
 	[3] = {
-		.gpio = ADAM_FB_NONROTATE,
-		.active_low = false,
+		.gpio = ADAM_KEY_BACK,
+		.active_low = true,
 		.debounce_interval = 10,
-		.wakeup = false,		
-		.code = SW_ROTATION_LOCK,
-		.type = EV_SW,		
-		.desc = "rotation lock",
+		.wakeup = true,		
+		.code = KEY_BACK,
+		.type = EV_KEY,		
+		.desc = "back",
 	},
 };
 

@@ -49,11 +49,11 @@ static void __adam_pm_gps_toggle_radio(struct device *dev, unsigned int on)
 		regulator_enable(gps_data->regulator[1]);
 	
 		/* 3G/GPS power on sequence */
-		adam_3g_gps_poweron();
+		adam_gps_mag_poweron();
 
 	} else {
 	
-		adam_3g_gps_poweroff();
+		adam_gps_mag_poweroff();
 				
 		regulator_disable(gps_data->regulator[1]);
 		regulator_disable(gps_data->regulator[0]);
@@ -179,7 +179,7 @@ static int __init adam_pm_gps_probe(struct platform_device *pdev)
 	gps_data->regulator[1] = regulator[1];
 	
 	/* Init io pins */
-	adam_3g_gps_init();
+	adam_gps_mag_init();
 
 	dev_info(&pdev->dev, "GPS power management driver loaded\n");
 	
@@ -209,7 +209,7 @@ static int adam_pm_gps_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver adam_pm_gps_driver = {
+static struct platform_driver adam_pm_gps_driver_ops = {
 	.probe		= adam_pm_gps_probe,
 	.remove		= adam_pm_gps_remove,
 	.suspend	= adam_pm_gps_suspend,
@@ -221,12 +221,12 @@ static struct platform_driver adam_pm_gps_driver = {
 
 static int __devinit adam_pm_gps_init(void)
 {
-	return platform_driver_register(&adam_pm_gps_driver);
+	return platform_driver_register(&adam_pm_gps_driver_ops);
 }
 
 static void adam_pm_gps_exit(void)
 {
-	platform_driver_unregister(&adam_pm_gps_driver);
+	platform_driver_unregister(&adam_pm_gps_driver_ops);
 }
 
 module_init(adam_pm_gps_init);

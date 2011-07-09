@@ -89,7 +89,7 @@ static struct android_usb_platform_data andusb_plat = {
 	.vendor_id 			= 0x0955,
 	.product_id 		= 0x7100,
 	.manufacturer_name 	= "NVIDIA",
-	.product_name      	= "Shuttle",
+	.product_name      	= "Adam",
 	.serial_number     	= "0000",
 	.num_products 		= ARRAY_SIZE(usb_products),
 	.products 			= usb_products,
@@ -158,7 +158,7 @@ static struct tegra_utmip_config utmi_phy_config[] = {
 
 /* ULPI is managed by an SMSC3317 on the Harmony board */
 static struct tegra_ulpi_config ulpi_phy_config = {
-	.reset_gpio = ADAM_USB1_RESET,
+//	.reset_gpio = ADAM_USB1_RESET,
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,38)
 	.clk = "cdev2",
 #else
@@ -259,7 +259,7 @@ static void tegra_usb_otg_host_register(void)
 		goto error_add;
 
 	/* Place interface in host mode */
-	gpio_direction_input(ADAM_USB0_VBUS );
+//	gpio_direction_input(ADAM_USB0_VBUS );
 		
 	return;
 
@@ -277,7 +277,7 @@ static void tegra_usb_otg_host_unregister(void)
 		return;
 
 	/* Place interfase in gadget mode */
-	gpio_direction_output(ADAM_USB0_VBUS, 0 ); /* Gadget */
+//	gpio_direction_output(ADAM_USB0_VBUS, 0 ); /* Gadget */
 
 	platform_device_unregister(usb_host_pdev);
 	usb_host_pdev = NULL;
@@ -351,15 +351,15 @@ int __init adam_usb_register_devices(void)
 	tegra_ehci3_device.dev.platform_data = &tegra_ehci_pdata[2];
 	
 	/* If in host mode, set VBUS to 1 */
-	gpio_request(ADAM_USB0_VBUS, "USB0 VBUS"); /* VBUS switch, perhaps ? -- Tied to what? -- should require +5v ... */
+//	gpio_request(ADAM_USB0_VBUS, "USB0 VBUS"); /* VBUS switch, perhaps ? -- Tied to what? -- should require +5v ... */
 	
 	/* 0 = Gadget */
-	gpio_direction_output(ADAM_USB0_VBUS, 0 ); /* Gadget */
+//	gpio_direction_output(ADAM_USB0_VBUS, 0 ); /* Gadget */
 	
 	ret = platform_add_devices(adam_usb_devices, ARRAY_SIZE(adam_usb_devices));
-	if (ret)
-		return ret;
+//	if (ret)
+	return ret;
 
 	/* Attach an attribute to the already registered udc device to switch it to host mode */
-	return sysfs_create_group(&tegra_udc_device.dev.kobj, &usb_attr_group); 
+//	return sysfs_create_group(&tegra_udc_device.dev.kobj, &usb_attr_group); 
 }

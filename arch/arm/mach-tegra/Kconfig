@@ -33,6 +33,11 @@ config MACH_SHUTTLE
          Support for all TabletPCs based on the P10AN01 design,
 	 including Shuttle, Advent Vega, POV Mobii, Surfer 360.
 
+config MACH_ADAM
+       bool "Notion Ink ADAM TabletPC"
+       help
+         Support for all TabletPCs based on the SMBA1006 design.
+
 config MACH_VENTANA
        bool "Ventana board"
        help

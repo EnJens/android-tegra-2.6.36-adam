@@ -94,8 +94,13 @@ static __initdata struct tegra_clk_init_table adam_clk_init_table[] = {
 	{ "pclk",		"hclk",			 54000000,	true},		/* must be always on */
 
 	/* pll_a and pll_a_out0 are clock sources for audio interfaces */
-	{ "pll_a",		"pll_p_out1",	 56448000,	true},		/* always on - audio clocks */
-	{ "pll_a_out0",	"pll_a",		 11289600,	true},		/* always on - i2s audio */
+#ifdef ALC5624_IS_MASTER
+	{ "pll_a",		"pll_p_out1",	 73728000,	true},		/* always on - audio clocks */
+	{ "pll_a_out0",	"pll_a",		 18432000,	true},		/* always on - i2s audio */
+#else
+	{ "pll_a",		"pll_p_out1",	 73728000,	true},		/* always on - audio clocks */
+	{ "pll_a_out0",	"pll_a",		 12288000,	true},		/* always on - i2s audio */
+#endif
 
 	/* pll_d and pll_d_out0 are clock sources for HDMI output */
 	{ "pll_d",		"clk_m",		  5000000,	true},		/* hdmi clock */
@@ -131,22 +136,39 @@ static __initdata struct tegra_clk_init_table adam_clk_init_table[] = {
 	{ "pcie_xclk",	"clk_m",		 12000000,	false},		/* pcie controller */
 #endif
 		
-	{ "i2s1",   	"pll_a_out0",    11289600,  false},		/* i2s.0 */
-	{ "i2s2",		"pll_a_out0",	 11289600,	false},		/* i2s.1 */
-	{ "audio", 		"pll_a_out0",    11289600,  false},
-	{ "audio_2x",	"audio",		 22579200,	false},
-	
+#ifdef ALC5624_IS_MASTER		
+	{ "i2s1",   	"clk_m",         12000000,  false},		/* i2s.0 */
+	{ "i2s2",		"clk_m",	     12000000,	false},		/* i2s.1 */
+	{ "audio", 		"i2s1",          12000000,  false},
+	{ "audio_2x",	"audio",		 24000000,	false},
 	{ "spdif_in",	"pll_p",		 36000000,	false},
-	{ "spdif_out",  "pll_a_out0",     5644800,  false},
-	
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,38)
-	{ "cdev1",      "pll_a_out0",    11289600,  false},		/* probably used as audio clock */	
-	{ "cdev2",  	"pll_p_out4",    26000000,  false}, 	/* probably used as USB clock - perhaps 24mhz ?*/	
+	{ "spdif_out",  "pll_a_out0",  	  6144000,  false},
 #else
-	{ "clk_dev1",  	"pll_a_out0",    11289600,  false}, 	
-	{ "clk_dev2",  	"pll_p_out4",    26000000,  false}, 	/* used as USB clock */
+	{ "i2s1",   	"pll_a_out0",    12288000,  false},		/* i2s.0 */
+	{ "i2s2",		"pll_a_out0",    12288000,	false},		/* i2s.1 */
+	{ "audio", 		"pll_a_out0",    12288000,  false},
+	{ "audio_2x",	"audio",		 24576000,	false},
+	{ "spdif_in",	"pll_p",		 36000000,	false},
+	{ "spdif_out",  "pll_a_out0", 	  6144000,  false},
 #endif
+	
+	/* cdev[1-2] take the configuration (clock parents) from the pinmux config, 
+	   That is why we are setting it to NULL */
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,38)
+#	define CDEV1 "cdev1"
+#	define CDEV2 "cdev2"
+#else
+#	define CDEV1 "clk_dev1"
+#	define CDEV2 "clk_dev2"
+#endif
+#ifdef ALC5624_IS_MASTER		
+	{ CDEV1,   NULL /*"pll_a_out0"*/,18432000,  false},		/* used as audio CODEC MCLK */	
+#else
+	{ CDEV1,   NULL /*"pll_a_out0"*/,12288000,  false},		/* used as audio CODEC MCLK */	
+#endif
+	{ CDEV2,   NULL /*"pll_p_out4"*/,26000000,  false}, 	/* probably used as USB clock - perhaps 24mhz ?*/	
 
+	
 	{ "i2c1_i2c",	"pll_p_out3",	 72000000,	false},		/* tegra-i2c.0 */
 	{ "i2c2_i2c",	"pll_p_out3",	 72000000,	false},		/* tegra-i2c.1 */
 	{ "i2c3_i2c",	"pll_p_out3",	 72000000,	false},		/* tegra-i2c.2 */
@@ -170,9 +192,9 @@ static __initdata struct tegra_clk_init_table adam_clk_init_table[] = {
 	{ "disp2",  	"pll_p",    	216000000, 	false},		/* tegradc.1 */	
 	
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,38)	
-	{ "dsi",		"pll_d",		  1000000,	false},		/* tegra_dc.0, tegra_dc.1 */
+	{ "dsi",		"pll_d",		  5000000,	false},		/* tegra_dc.0, tegra_dc.1 */
 #else
-	{ "dsi",		"pll_d_out0",	  1000000,	false},		/* tegra_dc.0, tegra_dc.1 - bug on kernel 2.6.36*/
+	{ "dsi",		"pll_d_out0",	  5000000,	false},		/* tegra_dc.0, tegra_dc.1 - bug on kernel 2.6.36*/
 #endif
 	{ "hdmi",		"clk_m",		 12000000,	false},		/* tegra_dc.0, tegra_dc.1 */
 	

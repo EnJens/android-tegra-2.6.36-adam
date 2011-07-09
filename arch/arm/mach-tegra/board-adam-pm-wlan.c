@@ -15,7 +15,7 @@
  */
 
 /* adam-pm-wlan.c
-	Wlan is on SDIO bus and it is a AR6000 
+	Wlan is on SDIO bus and it is a BCM4329
 */
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -241,7 +241,7 @@ static int __init adam_wlan_probe(struct platform_device *pdev)
 	gpio_request(ADAM_WLAN_POWER, "wlan_reset");
 	gpio_direction_output(ADAM_WLAN_POWER, 0);
 	
-	rfkill = rfkill_alloc("ar6000", &pdev->dev, RFKILL_TYPE_WLAN,
+	rfkill = rfkill_alloc("bcm4329", &pdev->dev, RFKILL_TYPE_WLAN,
 							&adam_wlan_rfkill_ops, &pdev->dev);
 
 
@@ -298,7 +298,7 @@ static int adam_wlan_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver adam_wlan_driver = {
+static struct platform_driver adam_wlan_driver_ops = {
 	.probe		= adam_wlan_probe,
 	.remove		= adam_wlan_remove,
 	.suspend	= adam_wlan_suspend,
@@ -310,12 +310,12 @@ static struct platform_driver adam_wlan_driver = {
 
 static int __devinit adam_wlan_init(void)
 {
-	return platform_driver_register(&adam_wlan_driver);
+	return platform_driver_register(&adam_wlan_driver_ops);
 }
 
 static void adam_wlan_exit(void)
 {
-	platform_driver_unregister(&adam_wlan_driver);
+	platform_driver_unregister(&adam_wlan_driver_ops);
 }
 
 module_init(adam_wlan_init);
