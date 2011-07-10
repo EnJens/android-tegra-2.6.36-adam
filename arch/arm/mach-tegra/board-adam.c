@@ -167,13 +167,13 @@ static void __init tegra_adam_init(void)
 
 	/* Set the SDMMC1 (wifi) tap delay to 6.  This value is determined
 	 * based on propagation delay on the PCB traces. */
-	clk = clk_get_sys("sdhci-tegra.0", NULL);
+	/*clk = clk_get_sys("sdhci-tegra.0", NULL);
 	if (!IS_ERR(clk)) {
 		tegra_sdmmc_tap_delay(clk, 6);
 		clk_put(clk);
 	} else {
 		pr_err("Failed to set wifi sdmmc tap delay\n");
-	}
+	}*/
 
 	/* Initialize the clocks */
 	adam_clks_init();
@@ -182,19 +182,19 @@ static void __init tegra_adam_init(void)
 	adam_pinmux_init();
 
 	/* Register i2c devices - required for Power management and MUST be done before the power register */
-	//adam_i2c_register_devices();
+	adam_i2c_register_devices();
 
 	/* Register the power subsystem - Including the poweroff handler - Required by all the others */
-	//adam_power_register_devices();
+	adam_power_register_devices();
 	
 	/* Register the USB device */
-	//adam_usb_register_devices();
+	adam_usb_register_devices();
 
 	/* Register UART devices */
-//	adam_uart_register_devices();
+	adam_uart_register_devices();
 	
 	/* Register SPI devices */
-//	adam_spi_register_devices();
+	adam_spi_register_devices();
 
 	/* Register GPU devices */
 	adam_gpu_register_devices();
@@ -203,7 +203,7 @@ static void __init tegra_adam_init(void)
 //	adam_audio_register_devices();
 
 	/* Register AES encryption devices */
-//	adam_aes_register_devices();
+	adam_aes_register_devices();
 
 	/* Register Watchdog devices */
 //	adam_wdt_register_devices();
@@ -215,7 +215,7 @@ static void __init tegra_adam_init(void)
 //	adam_touch_register_devices();
 	
 	/* Register SDHCI devices */
-//	adam_sdhci_register_devices();
+	adam_sdhci_register_devices();
 
 	/* Register accelerometer device */
 //	adam_sensors_register_devices();

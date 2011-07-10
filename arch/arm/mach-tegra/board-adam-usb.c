@@ -175,7 +175,7 @@ static struct tegra_ehci_platform_data tegra_ehci_pdata[] = {
 		.operating_mode = TEGRA_USB_HOST, /* DEVICE is slave here */
 		.power_down_on_bus_suspend = 1,
 	},
-	[1] = {
+	/*[1] = {
 		.phy_config = &ulpi_phy_config,
 		.operating_mode = TEGRA_USB_HOST,
 		.power_down_on_bus_suspend = 1,
@@ -184,104 +184,8 @@ static struct tegra_ehci_platform_data tegra_ehci_pdata[] = {
 		.phy_config = &utmi_phy_config[1],
 		.operating_mode = TEGRA_USB_HOST,
 		.power_down_on_bus_suspend = 1,
-	},
+	},*/
 };
-
-
-#if 0
-/* OTG gadget device */
-static u64 tegra_otg_dmamask = DMA_BIT_MASK(32);
-
-static struct resource tegra_otg_resources[] = {
-	[0] = {
-		.start  = TEGRA_USB_BASE,
-		.end    = TEGRA_USB_BASE + TEGRA_USB_SIZE - 1,
-		.flags  = IORESOURCE_MEM,
-	},
-	[1] = {
-		.start  = INT_USB,
-		.end    = INT_USB,
-		.flags  = IORESOURCE_IRQ,
-	},
-};
-
-static struct fsl_usb2_platform_data tegra_otg_pdata = {
-	.operating_mode	= FSL_USB2_DR_DEVICE,
-	.phy_mode		= FSL_USB2_PHY_UTMI,
-};
-
-static struct platform_device tegra_otg = {
-#if LINUX_VERSION_CODE == KERNEL_VERSION(2,6,36)	
-	.name = "fsl-tegra-udc",
-#else
-	.name = "fsl-usb2-udc",
-#endif
-	.id   = -1,
-	.dev  = {
-		.dma_mask			= &tegra_otg_dmamask,
-		.coherent_dma_mask	= 0xffffffff,
-		.platform_data 		= &tegra_otg_pdata,
-	},
-	.resource = tegra_otg_resources,
-	.num_resources = ARRAY_SIZE(tegra_otg_resources),
-}; 
-
-
-/////
-
-
-#endif
-
-struct platform_device *usb_host_pdev = NULL;
-
-static void tegra_usb_otg_host_register(void)
-{
-	int val;
-	if (usb_host_pdev != NULL)
-		return;
-
-	usb_host_pdev = platform_device_alloc(tegra_ehci1_device.name,
-			tegra_ehci1_device.id);
-	if (!usb_host_pdev)
-		return;
-
-	val = platform_device_add_resources(usb_host_pdev, tegra_ehci1_device.resource,
-		tegra_ehci1_device.num_resources);
-	if (val)
-		goto error;
-
-	usb_host_pdev->dev.dma_mask =  tegra_ehci1_device.dev.dma_mask;
-	usb_host_pdev->dev.coherent_dma_mask = tegra_ehci1_device.dev.coherent_dma_mask;
-	usb_host_pdev->dev.platform_data = tegra_ehci1_device.dev.platform_data;
-
-	val = platform_device_add(usb_host_pdev);
-	if (val)
-		goto error_add;
-
-	/* Place interface in host mode */
-//	gpio_direction_input(ADAM_USB0_VBUS );
-		
-	return;
-
-error_add:
-error:
-	pr_err("%s: failed to add the host controller device\n", __func__);
-	platform_device_put(usb_host_pdev);
-	usb_host_pdev = NULL;
-	return;
-}
-
-static void tegra_usb_otg_host_unregister(void)
-{
-	if (usb_host_pdev == NULL)
-		return;
-
-	/* Place interfase in gadget mode */
-//	gpio_direction_output(ADAM_USB0_VBUS, 0 ); /* Gadget */
-
-	platform_device_unregister(usb_host_pdev);
-	usb_host_pdev = NULL;
-}
 
 
 static struct platform_device *adam_usb_devices[] __initdata = {
@@ -293,62 +197,17 @@ static struct platform_device *adam_usb_devices[] __initdata = {
 #endif
 	&androidusb_device,		/* should come AFTER ums and acm */
 	&tegra_udc_device, 		/* USB gadget */
-	&tegra_ehci2_device,
+	//&tegra_ehci2_device,
 	&tegra_ehci3_device,
 };
-
-static ssize_t usb_read(struct device *dev, struct device_attribute *attr,
-		       char *buf)
-{
-	int ret = 0;
-	
-	if (!strcmp(attr->attr.name, "host_mode")) {
-		if (usb_host_pdev != NULL)
-			ret = 1;
-	}
-
-	if (!ret) {
-		return strlcpy(buf, "0\n", 3);
-	} else {
-		return strlcpy(buf, "1\n", 3);
-	}
-}
-
-static ssize_t usb_write(struct device *dev, struct device_attribute *attr,
-			const char *buf, size_t count)
-{
-	unsigned long on = simple_strtoul(buf, NULL, 10);
-
-	if (!strcmp(attr->attr.name, "host_mode")) {
-		if (on)
-			tegra_usb_otg_host_register();
-		else
-			tegra_usb_otg_host_unregister();
-	} 
-
-	return count;
-}
-
-static DEVICE_ATTR(host_mode, 0644, usb_read, usb_write);
-
-static struct attribute *usb_sysfs_entries[] = {
-	&dev_attr_host_mode.attr,
-	NULL
-};
-
-static struct attribute_group usb_attr_group = {
-	.name	= NULL,
-	.attrs	= usb_sysfs_entries,
-}; 
-
 
 int __init adam_usb_register_devices(void)
 {
 	int ret;
 	
-	tegra_ehci1_device.dev.platform_data = &tegra_ehci_pdata[0];
-	tegra_ehci2_device.dev.platform_data = &tegra_ehci_pdata[1];
-	tegra_ehci3_device.dev.platform_data = &tegra_ehci_pdata[2];
+	//tegra_ehci1_device.dev.platform_data = &tegra_ehci_pdata[0];
+	//tegra_ehci2_device.dev.platform_data = &tegra_ehci_pdata[1];
+	tegra_ehci3_device.dev.platform_data = &tegra_ehci_pdata[0];
 	
 	/* If in host mode, set VBUS to 1 */
 //	gpio_request(ADAM_USB0_VBUS, "USB0 VBUS"); /* VBUS switch, perhaps ? -- Tied to what? -- should require +5v ... */

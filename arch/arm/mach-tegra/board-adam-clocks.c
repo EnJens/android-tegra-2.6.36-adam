@@ -124,11 +124,11 @@ static __initdata struct tegra_clk_init_table adam_clk_init_table[] = {
 	{ "mpe",		"pll_c",		300000000,	false},		/* tegra_grhost */	
 	{ "host1x",		"pll_p",		144000000,	false},		/* tegra_grhost */
 	
-	{ "vi",     	"pll_c",   		150000000,  false},		/* tegra_camera : unused on adam */
-	{ "vi_sensor",	"pll_c",		150000000,	false},		/* tegra_camera : unused on adam */
-	{ "csi",		"pll_p_out3",	 72000000,	false},		/* tegra_camera */
-	{ "isp",		"clk_m",		 12000000,	false},		/* tegra_camera */
-	{ "csus",		"clk_m",		 12000000,	false},		/* tegra_camera */
+	{ "vi",     	"pll_c",   		150000000,  true},		/* tegra_camera */
+	{ "vi_sensor",	"pll_c",		150000000,	true},		/* tegra_camera */
+	{ "csi",		"pll_p_out3",	 72000000,	true},		/* tegra_camera */
+	{ "isp",		"clk_m",		 12000000,	true},		/* tegra_camera */
+	{ "csus",		"clk_m",		 12000000,	true},		/* tegra_camera */
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,38)
 	{ "pex",		"clk_m",		 12000000,	false},		/* pcie controller */

@@ -89,7 +89,7 @@ static struct regulator_consumer_supply tps658621_ldo1_supply[] = { /* 1V2 */
 	REGULATOR_SUPPLY("pll_u", NULL),
 	REGULATOR_SUPPLY("pll_u1", NULL),
 	REGULATOR_SUPPLY("pll_s", NULL),
-	REGULATOR_SUPPLY("pll_x", NULL)
+	REGULATOR_SUPPLY("pll_x", NULL),
 };
 
 /* RTC voltage rail : VDD_RTC -> LD02
@@ -97,6 +97,7 @@ static struct regulator_consumer_supply tps658621_ldo1_supply[] = { /* 1V2 */
 */
 static struct regulator_consumer_supply tps658621_ldo2_supply[] = { 
 	REGULATOR_SUPPLY("vdd_rtc", NULL),
+	REGULATOR_SUPPLY("vdd_aon", NULL),
 };
 
 /* PLL_USB voltage rail : AVDD_USB_PLL -> derived from LDO3 (VDD_3V3)
@@ -108,12 +109,12 @@ static struct regulator_consumer_supply tps658621_ldo2_supply[] = {
    TMON pwer rail : TMON pwer rail -> LDO3 (VDD_3V3)
 */
 static struct regulator_consumer_supply tps658621_ldo3_supply[] = { /* 3V3 */
-	REGULATOR_SUPPLY("avdd_usb", NULL),
 	REGULATOR_SUPPLY("avdd_usb_pll", NULL),
-	REGULATOR_SUPPLY("vddio_nand_3v3", NULL), // AON
-	REGULATOR_SUPPLY("sdio", NULL), /* vddio_sdio */
-	REGULATOR_SUPPLY("vmmc", NULL), /* vddio_mmc, but sdhci.c requires it to be called vmmc*/
-	REGULATOR_SUPPLY("avdd_lvds", NULL),	
+	REGULATOR_SUPPLY("avdd_usb", NULL),
+	REGULATOR_SUPPLY("vddio_nand_3v3", NULL), /* AON? */
+	REGULATOR_SUPPLY("sdio", NULL),
+	REGULATOR_SUPPLY("vmmc", NULL), 
+	REGULATOR_SUPPLY("avdd_lvds", NULL),
 	REGULATOR_SUPPLY("tmon0", NULL),
 };
 
@@ -132,17 +133,17 @@ static struct regulator_consumer_supply tps658621_ldo3_supply[] = { /* 3V3 */
    Wlan : VDDIO_WLAN (AON:VDD_1V8)
 */
 static struct regulator_consumer_supply tps658621_ldo4_supply[] = { /* VDD IO VI */
-	REGULATOR_SUPPLY("avdd_osc", NULL),        
+	REGULATOR_SUPPLY("avdd_osc", NULL),       /* AVDD_OSC */
 	REGULATOR_SUPPLY("vddio_sys", NULL),
-	REGULATOR_SUPPLY("vddio_lcd", NULL),       //AON
-	REGULATOR_SUPPLY("vddio_audio", NULL),     //AON
-	REGULATOR_SUPPLY("vddio_ddr", NULL),       //AON
-	REGULATOR_SUPPLY("vddio_uart", NULL),      //AON
-	REGULATOR_SUPPLY("vddio_bb", NULL),        //AON
+	REGULATOR_SUPPLY("vddio_lcd", NULL),      /* AON? */
+	REGULATOR_SUPPLY("vddio_audio", NULL),    /* AON? */
+	REGULATOR_SUPPLY("vddio_ddr", NULL),      /* AON? */
+	REGULATOR_SUPPLY("vddio_uart", NULL),     /* AON? */
+	REGULATOR_SUPPLY("vddio_bb", NULL),       /* AON? */
 	REGULATOR_SUPPLY("tmon1.8vs", NULL),
-	REGULATOR_SUPPLY("vddhostif_bt", NULL),	
+	REGULATOR_SUPPLY("vddhostif_bt", NULL),
 	REGULATOR_SUPPLY("wifi3vs", NULL),
-	REGULATOR_SUPPLY("vddio_wlan", NULL)
+	REGULATOR_SUPPLY("vddio_wlan", NULL),
 };
 
 /*unused*/
@@ -154,7 +155,7 @@ static struct regulator_consumer_supply tps658621_ldo5_supply[] = {
    tvdac rail : VDDIO_VDAC,AVDD_VDAC
  */
 static struct regulator_consumer_supply tps658621_ldo6_supply[] = {
-	REGULATOR_SUPPLY("vddio vdac", NULL),
+	//REGULATOR_SUPPLY("vddio vdac", NULL),
 	REGULATOR_SUPPLY("avdd_vdac", NULL)
 };
 
@@ -396,11 +397,11 @@ static struct tps6586x_subdev_info tps_devs[] = {
 	TPS_ADJ_REG(LDO_7, &ldo7_data),
 	TPS_ADJ_REG(LDO_8, &ldo8_data),
 	TPS_ADJ_REG(LDO_9, &ldo9_data),
-	TPS_ADJ_REG(LDO_RTC, &rtc_data),
-	TPS_ADJ_REG(LDO_SOC, &soc_data),
-	TPS_GPIO_FIX_REG(0, &ldo_tps74201_cfg),
+	//TPS_ADJ_REG(LDO_RTC, &rtc_data),
+	//TPS_ADJ_REG(LDO_SOC, &soc_data),
+	/*TPS_GPIO_FIX_REG(0, &ldo_tps74201_cfg),
 	TPS_GPIO_FIX_REG(1, &buck_tps62290_cfg),
-	TPS_GPIO_FIX_REG(2, &ldo_tps72012_cfg),
+	TPS_GPIO_FIX_REG(2, &ldo_tps72012_cfg),*/
 	{
 		.id		= -1,
 		.name		= "tps6586x-rtc",
@@ -548,8 +549,8 @@ struct platform_device tegra_rtc_device = {
 #endif
 
 static struct platform_device *adam_power_devices[] __initdata = {
-	&adam_ldo_tps2051B_reg_device,
-	&adam_vdd_aon_reg_device,
+	//&adam_ldo_tps2051B_reg_device,
+	//&adam_vdd_aon_reg_device,
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,38)	
 	&tegra_pmu_device,
 #else
@@ -563,14 +564,14 @@ static struct platform_device *adam_power_devices[] __initdata = {
 int __init adam_power_register_devices(void)
 {
 	int err;
-	void __iomem *pmc = IO_ADDRESS(TEGRA_PMC_BASE);
-	u32 pmc_ctrl;
+	//void __iomem *pmc = IO_ADDRESS(TEGRA_PMC_BASE);
+	//u32 pmc_ctrl;
 
 	/* configure the power management controller to trigger PMU
 	 * interrupts when low
 	 */
-	pmc_ctrl = readl(pmc + PMC_CTRL);
-	writel(pmc_ctrl | PMC_CTRL_INTR_LOW, pmc + PMC_CTRL);
+	//pmc_ctrl = readl(pmc + PMC_CTRL);
+	//writel(pmc_ctrl | PMC_CTRL_INTR_LOW, pmc + PMC_CTRL);
 
 	err = i2c_register_board_info(4, adam_regulators, 1);
 	if (err < 0) 
@@ -584,6 +585,7 @@ int __init adam_power_register_devices(void)
 	
 	/* register all pm devices - This must come AFTER the registration of the TPS i2c interfase,
 	   as we need the GPIO definitions exported by that driver */
+	//return 0;
 	return platform_add_devices(adam_power_devices, ARRAY_SIZE(adam_power_devices));
 }
 
