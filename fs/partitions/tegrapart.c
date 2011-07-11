@@ -322,7 +322,7 @@ tegrapart_partition(struct parsed_partitions *state)
 {
 	printk(KERN_INFO "tegrapart_partition: state->bdev->bd_disk->disk_name = %s\n", state->bdev->bd_disk->disk_name);
 
-	if (strcmp(state->bdev->bd_disk->disk_name, "mmcblk1")) {
+	if (!strncmp(state->bdev->bd_disk->disk_name, "mmcblk",6)) {
 		printk(KERN_INFO "tegrapart_partition: exit\n");
 		return 0;
 	}
