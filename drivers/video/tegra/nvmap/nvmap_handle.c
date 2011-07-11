@@ -37,7 +37,6 @@
 
 #include "nvmap.h"
 #include "nvmap_mru.h"
-#include "nvmap_common.h"
 
 #define NVMAP_SECURE_HEAPS	(NVMAP_HEAP_CARVEOUT_IRAM | NVMAP_HEAP_IOVMM)
 #ifdef CONFIG_NVMAP_HIGHMEM_ONLY
@@ -108,8 +107,7 @@ out:
 
 extern void __flush_dcache_page(struct address_space *, struct page *);
 
-static struct page *nvmap_alloc_pages_exact(gfp_t gfp,
-	size_t size, bool flush_inner)
+static struct page *nvmap_alloc_pages_exact(gfp_t gfp, size_t size)
 {
 	struct page *page, *p, *e;
 	unsigned int order;
@@ -129,10 +127,8 @@ static struct page *nvmap_alloc_pages_exact(gfp_t gfp,
 		__free_page(p);
 
 	e = page + (size >> PAGE_SHIFT);
-	if (flush_inner) {
-		for (p = page; p < e; p++)
-			__flush_dcache_page(page_mapping(p), p);
-	}
+	for (p = page; p < e; p++)
+		__flush_dcache_page(page_mapping(p), p);
 
 	base = page_to_phys(page);
 	outer_flush_range(base, base + size);
@@ -147,7 +143,6 @@ static int handle_page_alloc(struct nvmap_client *client,
 	pgprot_t prot;
 	unsigned int i = 0;
 	struct page **pages;
-	bool flush_inner = true;
 
 	pages = altalloc(nr_page * sizeof(*pages));
 	if (!pages)
@@ -160,14 +155,10 @@ static int handle_page_alloc(struct nvmap_client *client,
 		contiguous = true;
 #endif
 
-	if (size >= FLUSH_CLEAN_BY_SET_WAY_THRESHOLD) {
-		inner_flush_cache_all();
-		flush_inner = false;
-	}
 	h->pgalloc.area = NULL;
 	if (contiguous) {
 		struct page *page;
-		page = nvmap_alloc_pages_exact(GFP_NVMAP, size, flush_inner);
+		page = nvmap_alloc_pages_exact(GFP_NVMAP, size);
 		if (!page)
 			goto fail;
 
@@ -176,8 +167,7 @@ static int handle_page_alloc(struct nvmap_client *client,
 
 	} else {
 		for (i = 0; i < nr_page; i++) {
-			pages[i] = nvmap_alloc_pages_exact(GFP_NVMAP, PAGE_SIZE,
-				flush_inner);
+			pages[i] = nvmap_alloc_pages_exact(GFP_NVMAP, PAGE_SIZE);
 			if (!pages[i])
 				goto fail;
 		}
@@ -203,7 +193,6 @@ fail:
 	while (i--)
 		__free_page(pages[i]);
 	altfree(pages, nr_page * sizeof(*pages));
-	wmb();
 	return -ENOMEM;
 }
 

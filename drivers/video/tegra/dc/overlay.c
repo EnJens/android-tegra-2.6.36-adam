@@ -305,17 +305,7 @@ surf_err:
 	kfree(data);
 	return err;
 }
-static void tegra_overlay_set_emc_freq(struct tegra_overlay_info *dev)
-{
-	unsigned long emc_freq = 0;
-	int i;
 
-	for (i = 0; i < dev->dc->n_windows; i++) {
-		if (dev->overlays[i].owner != NULL)
-			emc_freq += dev->dc->mode.pclk*(i==1?2:1)*2;
-	}
-	clk_set_rate(dev->dc->emc_clk, emc_freq);
-}
 
 /* Overlay functions */
 static bool tegra_overlay_get(struct overlay_client *client, int idx)
@@ -330,8 +320,6 @@ static bool tegra_overlay_get(struct overlay_client *client, int idx)
 	if (dev->overlays[idx].owner == NULL) {
 		dev->overlays[idx].owner = client;
 		ret = true;
-		if (dev->dc->mode.pclk != 0)
-			tegra_overlay_set_emc_freq(dev);
 	}
 	mutex_unlock(&dev->overlays_lock);
 
@@ -357,8 +345,6 @@ static void tegra_overlay_put_locked(struct overlay_client *client, int idx)
 	flip_args.win[2].index = -1;
 
 	tegra_overlay_flip(dev, &flip_args, NULL);
-	if (dev->dc->mode.pclk != 0)
-		tegra_overlay_set_emc_freq(dev);
 }
 
 static void tegra_overlay_put(struct overlay_client *client, int idx)
@@ -417,9 +403,6 @@ static int tegra_overlay_ioctl_flip(struct overlay_client *client,
 	int idx = 0;
 	bool found_one = false;
 	struct tegra_overlay_flip_args flip_args;
-
-	if (!client->dev->dc->enabled)
-		return -EPIPE;
 
 	if (copy_from_user(&flip_args, arg, sizeof(flip_args)))
 		return -EFAULT;
@@ -658,7 +641,4 @@ void tegra_overlay_unregister(struct tegra_overlay_info *info)
 	kfree(info);
 }
 
-void tegra_overlay_disable(struct tegra_overlay_info *overlay_info)
-{
-	flush_workqueue(overlay_info->flip_wq);
-}
+

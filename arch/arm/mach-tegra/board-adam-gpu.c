@@ -2,6 +2,7 @@
  * arch/arm/mach-tegra/board-adam-gpu.c
  *
  * Copyright (C) 2011 Eduardo José Tagle <ejtagle@tutopia.com>
+ * Copyright (C) 2011 Jens Andersen <jens.andersen@gmail.com>
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and

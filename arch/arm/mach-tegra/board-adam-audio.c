@@ -245,7 +245,7 @@ static struct i2c_board_info __initdata adam_i2c_bus0_board_info[] = {
 	},
 };
 
-static struct adam_audio_platform_data adam_audio_pdata = {
+static struct shuttle_audio_platform_data adam_audio_pdata = {
 	.gpio_hp_det = ADAM_HP_DETECT,
 }; 
 
