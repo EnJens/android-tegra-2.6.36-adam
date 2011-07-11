@@ -167,13 +167,13 @@ static void __init tegra_adam_init(void)
 
 	/* Set the SDMMC1 (wifi) tap delay to 6.  This value is determined
 	 * based on propagation delay on the PCB traces. */
-	/*clk = clk_get_sys("sdhci-tegra.0", NULL);
+	clk = clk_get_sys("sdhci-tegra.0", NULL);
 	if (!IS_ERR(clk)) {
 		tegra_sdmmc_tap_delay(clk, 6);
 		clk_put(clk);
 	} else {
 		pr_err("Failed to set wifi sdmmc tap delay\n");
-	}*/
+	}
 
 	/* Initialize the clocks */
 	adam_clks_init();
@@ -206,7 +206,7 @@ static void __init tegra_adam_init(void)
 	adam_aes_register_devices();
 
 	/* Register Watchdog devices */
-//	adam_wdt_register_devices();
+	adam_wdt_register_devices();
 
 	/* Register all the keyboard devices */
 //	adam_keyboard_register_devices();
@@ -224,13 +224,13 @@ static void __init tegra_adam_init(void)
 //	adam_wlan_pm_register_devices();
 	
 	/* Register gps powermanagement devices */
-//	adam_gps_pm_register_devices();
+	adam_gps_pm_register_devices();
 
 	/* Register gsm powermanagement devices */
-//	adam_gsm_pm_register_devices();
+	adam_gsm_pm_register_devices();
 	
 	/* Register Bluetooth powermanagement devices */
-//	adam_bt_pm_register_devices();
+	adam_bt_pm_register_devices();
 
 	/* Register Camera powermanagement devices */
 //	adam_camera_pm_register_devices();

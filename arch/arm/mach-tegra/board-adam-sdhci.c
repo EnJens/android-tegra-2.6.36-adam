@@ -17,8 +17,11 @@
 
 #include <linux/resource.h>
 #include <linux/platform_device.h>
+#include <linux/wlan_plat.h>
 #include <linux/delay.h>
 #include <linux/gpio.h>
+#include <linux/clk.h>
+#include <linux/err.h>
 #include <linux/version.h>
 
 #include <asm/mach-types.h>
@@ -31,31 +34,41 @@
 #include "devices.h"
 #include "board-adam.h"
 
-static struct tegra_sdhci_platform_data tegra_sdhci_platform_data2 = {
-	.cd_gpio = -1,
-	.wp_gpio = -1,
-	.power_gpio = -1,
-};
-
-static struct tegra_sdhci_platform_data tegra_sdhci_platform_data3 = {
-	.cd_gpio = ADAM_SDHC_CD,
-	.wp_gpio = -1,
-	.power_gpio = ADAM_SDHC_POWER,
-};
 
 static void (*wlan_status_cb)(int card_present, void *dev_id) = NULL;
 static void *wlan_status_cb_devid = NULL;
 static int adam_wlan_cd = 0; /* WIFI virtual 'card detect' status */
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,38) && defined(_XOOM_KERNEL)
+static int adam_wifi_status_register(void (*callback)(int , void *), void *);
+static struct clk *wifi_32k_clk;
+
+static int adam_wifi_reset(int on);
+static int adam_wifi_power(int on);
+static int adam_wifi_set_carddetect(int val);
+
+static struct wifi_platform_data adam_wifi_control = {
+        .set_power      = adam_wifi_power,
+        .set_reset      = adam_wifi_reset,
+        .set_carddetect = adam_wifi_set_carddetect,
+};
+
+
+static struct platform_device adam_wifi_device = {
+        .name           = "bcm4329_wlan",
+        .id             = 1,
+        .dev            = {
+                .platform_data = &adam_wifi_control,
+        },
+};
+
 
 /* 2.6.36 version has a hook to check card status. Use it */
-static unsigned int adam_wlan_status(struct device *dev)
+/*static unsigned int adam_wlan_status(struct device *dev)
 {
 	return adam_wlan_cd;
-}
+}*/
 
-static int adam_wlan_status_register(
+static int adam_wifi_status_register(
 		void (*callback)(int card_present, void *dev_id),
 		void *dev_id)
 {
@@ -65,25 +78,30 @@ static int adam_wlan_status_register(
 	wlan_status_cb_devid = dev_id;
 	return 0;
 } 
-#endif
 
 struct tegra_sdhci_platform_data adam_wlan_data = {
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,38) && defined(_XOOM_KERNEL)
-	/* 2.6.36 version has a hook to check card status. Use it */
-	.mmc_data = {
-		.ocr_mask		= MMC_VDD_165_195,
-		.built_in		= 1,
-		.status			= adam_wlan_status,
-		.register_status_notify	= adam_wlan_status_register, 
-	},
-#endif
+        .clk_id = NULL,
+        .force_hs = 0,
+        .register_status_notify = adam_wifi_status_register,
+        .cccr   = {
+                .sdio_vsn       = 2,
+                .multi_block    = 1,
+                .low_speed      = 0,
+                .wide_bus       = 0,
+                .high_power     = 1,
+                .high_speed     = 1,
+        },
+        .cis  = {
+                .vendor         = 0x02d0,
+                .device         = 0x4329,
+        },
 	.cd_gpio = -1,
 	.wp_gpio = -1,
 	.power_gpio = -1,
 };
 
 /* Used to set the virtual CD of wifi adapter */
-void adam_wifi_set_cd(int val)
+int adam_wifi_set_carddetect(int val)
 {
 	/* Only if a change is detected */
 	if (adam_wlan_cd != val) {
@@ -97,8 +115,44 @@ void adam_wifi_set_cd(int val)
 		} else
 			pr_info("%s: Nobody to notify\n", __func__);
 	}
+	return 0;
 }
-EXPORT_SYMBOL_GPL(adam_wifi_set_cd);
+
+static int adam_wifi_power(int on)
+{
+        pr_debug("%s: %d\n", __func__, on);
+
+        gpio_set_value(ADAM_WLAN_POWER, on);
+        mdelay(100);
+        gpio_set_value(ADAM_WLAN_RESET, on);
+        mdelay(200);
+
+        if (on)
+                clk_enable(wifi_32k_clk);
+        else
+                clk_disable(wifi_32k_clk);
+
+        return 0;
+}
+
+static int adam_wifi_reset(int on)
+{
+        pr_debug("%s: do nothing\n", __func__);
+        return 0;
+}
+
+
+static struct tegra_sdhci_platform_data tegra_sdhci_platform_data2 = {
+	.cd_gpio = -1,
+	.wp_gpio = -1,
+	.power_gpio = -1,
+};
+
+static struct tegra_sdhci_platform_data tegra_sdhci_platform_data3 = {
+	.cd_gpio = ADAM_SDHC_CD,
+	.wp_gpio = -1,
+	.power_gpio = ADAM_SDHC_POWER,
+};
 
 static struct tegra_sdhci_platform_data tegra_sdhci_platform_data4 = {
 	.cd_gpio = -1,
@@ -106,18 +160,43 @@ static struct tegra_sdhci_platform_data tegra_sdhci_platform_data4 = {
 	.power_gpio = -1,
 };
 
+
+
 static struct platform_device *adam_sdhci_devices[] __initdata = {
 	&tegra_sdhci_device1,
-	&tegra_sdhci_device2,
+//	&tegra_sdhci_device2,
 	&tegra_sdhci_device3,
 	&tegra_sdhci_device4,
 };
 
+static int __init adam_wifi_init(void)
+{
+        wifi_32k_clk = clk_get_sys(NULL, "blink");
+        if (IS_ERR(wifi_32k_clk)) {
+                pr_err("%s: unable to get blink clock\n", __func__);
+                return PTR_ERR(wifi_32k_clk);
+        }
+        tegra_gpio_enable(ADAM_WLAN_POWER);
+        tegra_gpio_enable(ADAM_WLAN_RESET);
+
+        gpio_direction_output(ADAM_WLAN_POWER, 0);
+        gpio_direction_output(ADAM_WLAN_RESET, 0);
+
+        platform_device_register(&adam_wifi_device);
+
+        device_init_wakeup(&adam_wifi_device.dev, 1);
+        device_set_wakeup_enable(&adam_wifi_device.dev, 0);
+
+        return 0;
+}
+
+
 /* Register sdhci devices */
 int __init adam_sdhci_register_devices(void)
 {
+	int ret=0;
 	/* Plug in platform data */
-	tegra_sdhci_device1.dev.platform_data = &adam_wlan_data; 
+	tegra_sdhci_device1.dev.platform_data = &adam_wlan_data;
 	tegra_sdhci_device2.dev.platform_data = &tegra_sdhci_platform_data2;
 	tegra_sdhci_device3.dev.platform_data = &tegra_sdhci_platform_data3;
 	tegra_sdhci_device4.dev.platform_data = &tegra_sdhci_platform_data4;
@@ -135,6 +214,8 @@ int __init adam_sdhci_register_devices(void)
 	gpio_direction_input(tegra_sdhci_platform_data3.cd_gpio);
 //	gpio_direction_input(tegra_sdhci_platform_data4.wp_gpio);
 	
-	return platform_add_devices(adam_sdhci_devices, ARRAY_SIZE(adam_sdhci_devices));
+	ret = platform_add_devices(adam_sdhci_devices, ARRAY_SIZE(adam_sdhci_devices));
+	adam_wifi_init();
+	return ret;
 
 }

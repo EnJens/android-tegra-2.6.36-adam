@@ -112,14 +112,14 @@ obj-${CONFIG_MACH_ADAM}              += board-adam-spi.o
 obj-${CONFIG_MACH_ADAM}              += board-adam-uart.o
 obj-${CONFIG_MACH_ADAM}              += board-adam-usb.o
 obj-${CONFIG_MACH_ADAM}              += board-adam-wdt.o
-obj-${CONFIG_MACH_ADAM}              += board-adam-wlan.o
+#obj-${CONFIG_MACH_ADAM}              += board-adam-wlan.o
 obj-${CONFIG_MACH_ADAM}              += board-adam.o
 # adam power management drivers
 obj-${CONFIG_MACH_ADAM}              += board-adam-pm-bluetooth.o
 obj-${CONFIG_MACH_ADAM}              += board-adam-pm-camera.o
 obj-${CONFIG_MACH_ADAM}              += board-adam-pm-gps.o
 obj-${CONFIG_MACH_ADAM}              += board-adam-pm-gsm.o
-obj-${CONFIG_MACH_ADAM}              += board-adam-pm-wlan.o
+#obj-${CONFIG_MACH_ADAM}              += board-adam-pm-wlan.o
 
 obj-${CONFIG_MACH_VENTANA}              += board-ventana.o
 obj-${CONFIG_MACH_VENTANA}              += board-ventana-pinmux.o

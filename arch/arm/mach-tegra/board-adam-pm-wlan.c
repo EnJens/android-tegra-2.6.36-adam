@@ -2,6 +2,7 @@
  * arch/arm/mach-tegra/adam-pm-wlan.c
  *
  * Copyright (C) 2011 Eduardo José Tagle <ejtagle@tutopia.com>
+ * Copyright (C) 2011 Jens Andersen <jens.andersen@gmail.com>
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -45,6 +46,7 @@
 struct adam_pm_wlan_data {
 	struct regulator *regulator[2];
 	struct rfkill *rfkill;
+	struct clk *wifi_32k_clk;
 #ifdef CONFIG_PM
 	int pre_resume_state;
 #endif
@@ -68,13 +70,14 @@ static void __adam_pm_wlan_toggle_radio(struct device *dev, unsigned int on)
 		regulator_enable(wlan_data->regulator[1]);
 	
 		/* Wlan power on sequence */
-		gpio_set_value(ADAM_WLAN_RESET, 0); /* Assert reset */
-		gpio_set_value(ADAM_WLAN_POWER, 0); /* Powerdown */
-		msleep(2);
+//		gpio_set_value(ADAM_WLAN_RESET, 0); /* Assert reset */
+//		gpio_set_value(ADAM_WLAN_POWER, 0); /* Powerdown */
+//		msleep(2);
 		gpio_set_value(ADAM_WLAN_POWER, 1); /* Powerup */
 		msleep(2);
 		gpio_set_value(ADAM_WLAN_RESET, 1); /* Deassert reset */
 		msleep(2);
+		clk_enable(wlan_data->wifi_32k_clk);
 		
 	} else {
 		dev_info(dev, "WLAN adapter disabled\n");
@@ -84,6 +87,8 @@ static void __adam_pm_wlan_toggle_radio(struct device *dev, unsigned int on)
 		
 		regulator_disable(wlan_data->regulator[1]);
 		regulator_disable(wlan_data->regulator[0]);
+		clk_disable(wlan_data->wifi_32k_clk);
+
 	}
 	
 	/* store new state */
@@ -234,6 +239,12 @@ static int __init adam_wlan_probe(struct platform_device *pdev)
 	}
 	wlan_data->regulator[1] = regulator[1];
 	
+	wlan_data->wifi_32k_clk = clk_get_sys(NULL, "blink");
+	if (IS_ERR(wlan_data->wifi_32k_clk)) {
+                pr_err("%s: unable to get blink clock\n", __func__);
+                return PTR_ERR(wlan_data->wifi_32k_clk);
+        }
+
 	/* Init io pins */
 	gpio_request(ADAM_WLAN_POWER, "wlan_power");
 	gpio_direction_output(ADAM_WLAN_POWER, 0);
@@ -323,4 +334,4 @@ module_exit(adam_wlan_exit);
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Eduardo José Tagle <ejtagle@tutopia.com>");
-MODULE_DESCRIPTION("Shuttle WLAN power management");
+MODULE_DESCRIPTION("Adam WLAN power management");
