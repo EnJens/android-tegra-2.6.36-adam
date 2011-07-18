@@ -136,7 +136,7 @@ static struct tegra_das_platform_data tegra_das_pdata = {
 			.con_id = tegra_das_port_con_id_hifi,
 			.num_entries = 2,
 			.con_line = { /*src*/            /*dst*/             /* src master */
-#ifdef ALC5624_IS_MASTER			
+#ifdef ALC5624_IS_MASTER
 				[0] = {tegra_das_port_i2s1, tegra_das_port_dap1, true}, 
 				[1] = {tegra_das_port_dap1, tegra_das_port_i2s1, false},
 #else

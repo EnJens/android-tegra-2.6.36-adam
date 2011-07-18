@@ -82,7 +82,9 @@
 #define ADAM_SDHC_WP		-1	/*1=Write Protected */
 #define ADAM_SDHC_POWER	TEGRA_GPIO_PD0
 
-//#define ADAM_TS_IRQ		TEGRA_GPIO_PB6
+#define ADAM_TS_IRQ		TEGRA_GPIO_PJ7
+#define ADAM_TS_RESET	TEGRA_GPIO_PH1
+#define ADAM_TS_POWER	TEGRA_GPIO_PK2
 //#define ADAM_TS_DISABLE	TEGRA_GPIO_PAA6 /* 0=enabled */
 
 //#define ADAM_FB_NONROTATE TEGRA_GPIO_PH1 /*1 = screen rotation locked */

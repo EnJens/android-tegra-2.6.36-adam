@@ -200,7 +200,7 @@ static void __init tegra_adam_init(void)
 	adam_gpu_register_devices();
 
 	/* Register Audio devices */
-//	adam_audio_register_devices();
+	adam_audio_register_devices();
 
 	/* Register AES encryption devices */
 	adam_aes_register_devices();
@@ -212,7 +212,7 @@ static void __init tegra_adam_init(void)
 //	adam_keyboard_register_devices();
 	
 	/* Register touchscreen devices */
-//	adam_touch_register_devices();
+	adam_touch_register_devices();
 	
 	/* Register SDHCI devices */
 	adam_sdhci_register_devices();
@@ -240,7 +240,7 @@ static void __init tegra_adam_init(void)
 	
 #if 0
 	/* Finally, init the external memory controller and memory frequency scaling
-   	   NB: This is not working on P10AN01. And seems there is no point in fixing it,
+   	   NB: This is not working on ADAM. And seems there is no point in fixing it,
 	   as the EMC clock is forced to the maximum speed as soon as the 2D/3D engine
 	   starts.*/
 	adam_init_emc();
