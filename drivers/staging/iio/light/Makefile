@@ -4,3 +4,4 @@
 
 obj-$(CONFIG_SENSORS_TSL2563)   += tsl2563.o
 obj-$(CONFIG_ISL29018)          += isl29018.o
+obj-$(CONFIG_ISL29023)          += isl29023.o
