@@ -179,6 +179,8 @@ static int __init adam_wifi_init(void)
         tegra_gpio_enable(ADAM_WLAN_POWER);
         tegra_gpio_enable(ADAM_WLAN_RESET);
 
+	gpio_request(ADAM_WLAN_POWER, "wifi_power");
+	gpio_request(ADAM_WLAN_RESET, "wifi_reset");
         gpio_direction_output(ADAM_WLAN_POWER, 0);
         gpio_direction_output(ADAM_WLAN_RESET, 0);
 
@@ -201,18 +203,11 @@ int __init adam_sdhci_register_devices(void)
 	tegra_sdhci_device3.dev.platform_data = &tegra_sdhci_platform_data3;
 	tegra_sdhci_device4.dev.platform_data = &tegra_sdhci_platform_data4;
 
-//	gpio_request(tegra_sdhci_platform_data1.power_gpio, "sdhci0_power");
-//	gpio_request(tegra_sdhci_platform_data1.cd_gpio, "sdhci0_cd");
-
 	gpio_request(tegra_sdhci_platform_data3.power_gpio, "sdhci3_power");
 	gpio_request(tegra_sdhci_platform_data3.cd_gpio, "sdhci3_cd");
-	//gpio_request(tegra_sdhci_platform_data4.wp_gpio, "sdhci4_wp");
 
-//	gpio_direction_output(tegra_sdhci_platform_data2.power_gpio, 1);
 	gpio_direction_output(tegra_sdhci_platform_data3.power_gpio, 1);
-//	gpio_direction_input(tegra_sdhci_platform_data2.cd_gpio);
 	gpio_direction_input(tegra_sdhci_platform_data3.cd_gpio);
-//	gpio_direction_input(tegra_sdhci_platform_data4.wp_gpio);
 	
 	ret = platform_add_devices(adam_sdhci_devices, ARRAY_SIZE(adam_sdhci_devices));
 	adam_wifi_init();
