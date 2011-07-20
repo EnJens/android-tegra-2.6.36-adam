@@ -212,7 +212,7 @@ static void __init tegra_adam_init(void)
 //	adam_keyboard_register_devices();
 	
 	/* Register touchscreen devices */
-	adam_touch_register_devices();
+	//adam_touch_register_devices();
 	
 	/* Register SDHCI devices */
 	adam_sdhci_register_devices();
