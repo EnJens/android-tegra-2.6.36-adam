@@ -98,7 +98,7 @@ void adam_gps_mag_poweron(void)
 	if (atomic_inc_return(&adam_gps_mag_powered) == 1) {
 		pr_info("Enabling GPS/Magnetic module\n");
 		/* 3G/GPS power on sequence */
-		gpio_set_value(ADAM_GPSMAG_DISABLE, 0); /* Enable power */
+		gpio_set_value(ADAM_GPSMAG_DISABLE, 1); /* Enable power */
 		msleep(2);
 	}
 }
@@ -109,7 +109,7 @@ void adam_gps_mag_poweroff(void)
 	if (atomic_dec_return(&adam_gps_mag_powered) == 0) {
 		pr_info("Disabling GPS/Magnetic module\n");
 		/* 3G/GPS power on sequence */
-		gpio_set_value(ADAM_GPSMAG_DISABLE, 1); /* Disable power */
+		gpio_set_value(ADAM_GPSMAG_DISABLE, 0); /* Disable power */
 		msleep(2);
 	}
 }
@@ -120,7 +120,7 @@ void adam_gps_mag_init(void)
 {
 	if (atomic_inc_return(&adam_gps_mag_inited) == 1) {
 		gpio_request(ADAM_GPSMAG_DISABLE, "gps_disable");
-		gpio_direction_output(ADAM_GPSMAG_DISABLE, 1);
+		gpio_direction_output(ADAM_GPSMAG_DISABLE, 0);
 	}
 }
 EXPORT_SYMBOL_GPL(adam_gps_mag_init);
@@ -238,6 +238,8 @@ static void __init tegra_adam_init(void)
 	/* Register NAND flash devices */
 	adam_nand_register_devices();
 	
+	adam_gps_mag_init();
+	adam_gps_mag_poweron();
 #if 0
 	/* Finally, init the external memory controller and memory frequency scaling
    	   NB: This is not working on ADAM. And seems there is no point in fixing it,
