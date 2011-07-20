@@ -2,6 +2,7 @@
  * arch/arm/mach-tegra/board-adam-usb.c
  *
  * Copyright (C) 2011 Eduardo José Tagle <ejtagle@tutopia.com>
+ * Copyright (C) 2011 Jens Andersen <jens.andersen@gmail.com>
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -135,21 +136,21 @@ static struct platform_device androidusb_device = {
 
 static struct tegra_utmip_config utmi_phy_config[] = {
 	[0] = {
-		.hssync_start_delay = 0,
+		.hssync_start_delay = 9,
 		.idle_wait_delay 	= 17,
 		.elastic_limit 		= 16,
 		.term_range_adj 	= 6, 	/*  xcvr_setup = 9 with term_range_adj = 6 gives the maximum guard around */
-		.xcvr_setup 		= 9, 	/*  the USB electrical spec. This is true across fast and slow chips, high */
+		.xcvr_setup 		= 15, 	/*  the USB electrical spec. This is true across fast and slow chips, high */
 									/*  and low voltage and hot and cold temperatures */
 		.xcvr_lsfslew 		= 2,	/*  -> To slow rise and fall times in low speed eye diagrams in host mode */
 		.xcvr_lsrslew 		= 2,	/*                                                                        */
 	},
 	[1] = {
-		.hssync_start_delay = 0,
+		.hssync_start_delay = 9,
 		.idle_wait_delay 	= 17,
 		.elastic_limit 		= 16,
 		.term_range_adj 	= 6,	/*  -> xcvr_setup = 9 with term_range_adj = 6 gives the maximum guard around */
-		.xcvr_setup 		= 9,	/*     the USB electrical spec. This is true across fast and slow chips, high */
+		.xcvr_setup 		= 8,	/*     the USB electrical spec. This is true across fast and slow chips, high */
 									/*     and low voltage and hot and cold temperatures */
 		.xcvr_lsfslew 		= 2,	/*  -> To slow rise and fall times in low speed eye diagrams in host mode */
 		.xcvr_lsrslew 		= 2,	/*                                                                        */
@@ -158,15 +159,13 @@ static struct tegra_utmip_config utmi_phy_config[] = {
 
 /* ULPI is managed by an SMSC3317 on the Harmony board */
 static struct tegra_ulpi_config ulpi_phy_config = {
-//	.reset_gpio = ADAM_USB1_RESET,
+	.reset_gpio = TEGRA_GPIO_PG2, //ADAM_USB1_RESET,
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,38)
 	.clk = "cdev2",
 #else
 	.clk = "clk_dev2",
 #endif
-#if 0
 	.inf_type = TEGRA_USB_LINK_ULPI,
-#endif
 };
 
 static struct tegra_ehci_platform_data tegra_ehci_pdata[] = {
@@ -175,7 +174,7 @@ static struct tegra_ehci_platform_data tegra_ehci_pdata[] = {
 		.operating_mode = TEGRA_USB_HOST, /* DEVICE is slave here */
 		.power_down_on_bus_suspend = 1,
 	},
-	/*[1] = {
+	[1] = {
 		.phy_config = &ulpi_phy_config,
 		.operating_mode = TEGRA_USB_HOST,
 		.power_down_on_bus_suspend = 1,
@@ -184,7 +183,7 @@ static struct tegra_ehci_platform_data tegra_ehci_pdata[] = {
 		.phy_config = &utmi_phy_config[1],
 		.operating_mode = TEGRA_USB_HOST,
 		.power_down_on_bus_suspend = 1,
-	},*/
+	},
 };
 
 
@@ -201,24 +200,87 @@ static struct platform_device *adam_usb_devices[] __initdata = {
 	&tegra_ehci3_device,
 };
 
+static struct usb_phy_plat_data tegra_usb_phy_pdata[] = {
+	[0] = {
+		.instance = 0,
+		.vbus_gpio = -1, 
+	},
+	[1] = {
+		.instance = 1, 
+		.vbus_gpio = -1,
+	},
+	[2] = {
+		.instance = 2, 
+		.vbus_gpio = -1, 
+	},
+};
+
+
+static struct platform_device *tegra_usb_otg_host_register(void)
+{
+	struct platform_device *pdev;
+	void *platform_data;
+	int val;
+
+	pdev = platform_device_alloc(tegra_ehci1_device.name, tegra_ehci1_device.id);
+	if (!pdev)
+		return NULL;
+
+	val = platform_device_add_resources(pdev, tegra_ehci1_device.resource,
+		tegra_ehci1_device.num_resources);
+	if (val)
+		goto error;
+
+	pdev->dev.dma_mask =  tegra_ehci1_device.dev.dma_mask;
+	pdev->dev.coherent_dma_mask = tegra_ehci1_device.dev.coherent_dma_mask;
+
+	platform_data = kmalloc(sizeof(struct tegra_ehci_platform_data), GFP_KERNEL);
+	if (!platform_data)
+		goto error;
+
+	memcpy(platform_data, &tegra_ehci_pdata[0],
+				sizeof(struct tegra_ehci_platform_data));
+	pdev->dev.platform_data = platform_data;
+
+	val = platform_device_add(pdev);
+	if (val)
+		goto error_add;
+
+	return pdev;
+
+error_add:
+	kfree(platform_data);
+error:
+	pr_err("%s: failed to add the host contoller device\n", __func__);
+	platform_device_put(pdev);
+	return NULL;
+}
+
+static void tegra_usb_otg_host_unregister(struct platform_device *pdev)
+{
+	kfree(pdev->dev.platform_data);
+	pdev->dev.platform_data = NULL;
+	platform_device_unregister(pdev);
+}
+
+static struct tegra_otg_platform_data tegra_otg_pdata = {
+	.host_register = &tegra_usb_otg_host_register,
+	.host_unregister = &tegra_usb_otg_host_unregister,
+};
+
 int __init adam_usb_register_devices(void)
 {
 	int ret;
+	
+	tegra_usb_phy_init(tegra_usb_phy_pdata, ARRAY_SIZE(tegra_usb_phy_pdata));
 	
 	//tegra_ehci1_device.dev.platform_data = &tegra_ehci_pdata[0];
 	//tegra_ehci2_device.dev.platform_data = &tegra_ehci_pdata[1];
 	tegra_ehci3_device.dev.platform_data = &tegra_ehci_pdata[0];
 	
-	/* If in host mode, set VBUS to 1 */
-//	gpio_request(ADAM_USB0_VBUS, "USB0 VBUS"); /* VBUS switch, perhaps ? -- Tied to what? -- should require +5v ... */
-	
-	/* 0 = Gadget */
-//	gpio_direction_output(ADAM_USB0_VBUS, 0 ); /* Gadget */
 	
 	ret = platform_add_devices(adam_usb_devices, ARRAY_SIZE(adam_usb_devices));
 //	if (ret)
 	return ret;
 
-	/* Attach an attribute to the already registered udc device to switch it to host mode */
-//	return sysfs_create_group(&tegra_udc_device.dev.kobj, &usb_attr_group); 
 }
