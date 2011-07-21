@@ -69,9 +69,9 @@ static void at168_reset(struct at168_data *touch)
 	if (touch->gpio_reset < 0)
 		return;
 
-	gpio_set_value(touch->gpio_reset, 1);
-	msleep(5);
 	gpio_set_value(touch->gpio_reset, 0);
+	msleep(5);
+	gpio_set_value(touch->gpio_reset, 1);
 	msleep(60);
 }
 
@@ -83,9 +83,9 @@ static irqreturn_t at168_irq(int irq, void *dev_id)
 	ret = at168_read_registers(touch, AT168_TOUCH_NUM, event.buff, sizeof(event));
 
 	// Debug
-	printk("at168_touch: Touches: %u, Prev Touches: %u\n", event.data.fingers, event.data.old_fingers);
-	printk("at168_touch: Position: (%u, %u)\n", __be16_to_cpu(event.data.coord[0][0]), __be16_to_cpu(event.data.coord[0][1]));
-	printk("at168_touch: Position: (%u, %u)\n", __be16_to_cpu(event.data.coord[1][0]), __be16_to_cpu(event.data.coord[1][1]));
+/*	printk("at168_touch: Touches: %u, Prev Touches: %u\n", event.data.fingers, event.data.old_fingers);
+	printk("at168_touch: Position: (%u, %u)\n", event.data.coord[0][0],event.data.coord[0][1]);
+	printk("at168_touch: Position: (%u, %u)\n", event.data.coord[1][0],event.data.coord[1][1]);*/
 
 	input_report_key(touch->input_dev, BTN_TOUCH,
 			 (event.data.fingers == 1 || event.data.fingers == 2));
@@ -96,9 +96,9 @@ static irqreturn_t at168_irq(int irq, void *dev_id)
 
 	for (i = 0; i < event.data.fingers; i++) {
 		input_report_abs(touch->input_dev, ABS_MT_POSITION_X,
-				 __be16_to_cpu(event.data.coord[i][0]));
+				 event.data.coord[i][0]);
 		input_report_abs(touch->input_dev, ABS_MT_POSITION_Y,
-				 __be16_to_cpu(event.data.coord[i][1]));
+				 event.data.coord[i][1]);
 		input_report_abs(touch->input_dev, ABS_MT_TRACKING_ID, i + 1);
 		input_mt_sync(touch->input_dev);
 	}
@@ -117,10 +117,10 @@ static int at168_read_registers(struct at168_data *touch, unsigned char reg, uns
 	msgs[0].buf = &reg;
 	msgs[0].flags = 0;
 	
-	msgs[1].addr = touch->read_client->addr;
+	msgs[1].addr = touch->client->addr;
 	msgs[1].len=len;
 	msgs[1].buf = buffer;
-	msgs[1].flags = 0;
+	msgs[1].flags = I2C_M_RD;
 	
 	do
 	{
@@ -128,6 +128,31 @@ static int at168_read_registers(struct at168_data *touch, unsigned char reg, uns
 	} while(ret == EAGAIN || ret == ETIMEDOUT);
 	return ret;
 }
+
+static ssize_t at168_dump_registers(struct device *dev, struct device_attribute *attr, char *buf)
+{
+	int ret,i,written=0;
+	#define NUM_REGISTERS (AT168_VERSION_PROTOCOL - AT168_TOUCH_NUM + 1)
+	unsigned char initdata[NUM_REGISTERS] = {};
+	char *curr_buf;
+	struct at168_data *touch = i2c_get_clientdata(to_i2c_client(dev));
+	ret = at168_read_registers(touch, AT168_TOUCH_NUM, initdata, NUM_REGISTERS);
+	int cnt=0;
+	if(ret > 0)
+	{
+		curr_buf = buf;
+		for(i=0; i<NUM_REGISTERS; i++)
+		{
+			written = sprintf(curr_buf, "R[0x%02X] = %d\n", i+1, initdata[i]);
+			cnt += written;
+			curr_buf += written;
+		}
+	}
+	return written;
+}
+
+
+static DEVICE_ATTR(dump_registers, 0664, at168_dump_registers, NULL);
 
 static int at168_probe(struct i2c_client *client,
 	const struct i2c_device_id *id)
@@ -147,11 +172,11 @@ static int at168_probe(struct i2c_client *client,
 	gpio_request(pdata->gpio_power, "at168_ts_power");
 	gpio_direction_output(pdata->gpio_power, 1);
 	/* Register secondary i2c interface */
-	touch->read_client = i2c_new_dummy(client->adapter, client->addr | 0x1);
+/*	touch->read_client = i2c_new_dummy(client->adapter, client->addr | 0x1);
 	if(!touch->read_client)
 	{
 		goto fail_i2c_or_register;
-	}
+	}*/
 
 	touch->gpio_reset = -EINVAL;
 
@@ -181,13 +206,6 @@ static int at168_probe(struct i2c_client *client,
 
 	at168_reset(touch);
 
-	/* Read settings from device */
-	/*ret = i2c_smbus_write_byte(touch->client, AT168_XMAX_LO);
-	if(ret < 0) {
-		dev_err(&client->dev, "%s: \n", __func__);
-		goto fail_i2c_or_register;
-	}*/
-	
 	
 	ret = at168_read_registers(touch, AT168_XMAX_LO, initdata, (AT168_VERSION_PROTOCOL - AT168_XMAX_LO + 1));
 
@@ -241,7 +259,7 @@ static int at168_probe(struct i2c_client *client,
 
 	
 	/* get the irq */
-	/*ret = request_threaded_irq(touch->client->irq, NULL, at168_irq,
+	ret = request_threaded_irq(touch->client->irq, NULL, at168_irq,
 			IRQF_ONESHOT | IRQF_TRIGGER_LOW,
 			DRIVER_NAME, touch);
 	if(ret) 
@@ -249,7 +267,16 @@ static int at168_probe(struct i2c_client *client,
 			dev_err(&client->dev, "%s: request_irq(%d) failed\n",
 				__func__, touch->client->irq);
 			goto fail_irq;
-	}*/
+	}
+
+	/* todo: rewrite to proper debug output device. See pinmux.c */
+/*	ret = device_create_file(&touch->input_dev->dev, &dev_attr_dump_registers);
+        if (ret) {
+                ret = -ENOMEM;
+                dev_err(&client->dev, "error creating calibration attribute\n");
+                goto fail_irq;
+        }*/
+
 
 #ifdef CONFIG_HAS_EARLYSUSPEND
 	touch->early_suspend.level = EARLY_SUSPEND_LEVEL_BLANK_SCREEN + 1;

@@ -209,16 +209,16 @@ static void __init tegra_adam_init(void)
 	adam_wdt_register_devices();
 
 	/* Register all the keyboard devices */
-//	adam_keyboard_register_devices();
+	adam_keyboard_register_devices();
 	
 	/* Register touchscreen devices */
-	//adam_touch_register_devices();
+	adam_touch_register_devices();
 	
 	/* Register SDHCI devices */
 	adam_sdhci_register_devices();
 
 	/* Register accelerometer device */
-//	adam_sensors_register_devices();
+	adam_sensors_register_devices();
 	
 	/* Register wlan powermanagement devices */
 //	adam_wlan_pm_register_devices();
