@@ -14,7 +14,6 @@
  * GNU General Public License for more details.
  *
  */
-
 #include <linux/kernel.h>
 #include <linux/init.h>
 #include <linux/platform_device.h>
@@ -579,6 +578,7 @@ static int tegra_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[],
 	rt_mutex_lock(&i2c_dev->dev_lock);
 
 	if (i2c_dev->last_mux != i2c_bus->mux) {
+		pr_debug("Reconfiguring pinmux for i2c mux 0x%x\n", i2c_bus->mux->pingroup);
 		tegra_pinmux_set_safe_pinmux_table(i2c_dev->last_mux,
 			i2c_dev->last_mux_len);
 		tegra_pinmux_config_pinmux_table(i2c_bus->mux,
@@ -601,6 +601,7 @@ static int tegra_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[],
 		ret = tegra_i2c_xfer_msg(i2c_bus, &msgs[i], stop);
 		if (ret)
 			goto out;
+		pr_debug("Transfered message %d successfully\n", i);
 	}
 	ret = i;
 

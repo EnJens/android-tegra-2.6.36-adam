@@ -98,7 +98,7 @@
 #define ADAM_IN_S3		TEGRA_GPIO_PAA7 /*1 = in S3 */
 
 //#define ADAM_USB0_VBUS	TEGRA_GPIO_PB0		/* 1= VBUS usb0 */
-//#define ADAM_USB1_RESET		TEGRA_GPIO_PV1	/* 0= reset */
+#define ADAM_USB1_RESET		TEGRA_GPIO_PV1	/* 0= reset */
 
 #define ADAM_HP_DETECT	TEGRA_GPIO_PW2 	/* HeadPhone detect for audio codec: 1=Hedphone plugged */
 
@@ -139,7 +139,7 @@ extern int adam_gps_pm_register_devices(void);
 extern int adam_gsm_pm_register_devices(void);
 extern int adam_bt_pm_register_devices(void);
 extern int adam_nand_register_devices(void);
-extern int adam_camera_pm_register_devices(void);
+extern int adam_camera_register_devices(void);
 
 #endif
 

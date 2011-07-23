@@ -30,8 +30,8 @@ static __initdata struct tegra_pingroup_config adam_pinmux[] = {
 	{TEGRA_PINGROUP_ATC,   TEGRA_MUX_NAND,          TEGRA_PUPD_NORMAL,    TEGRA_TRI_NORMAL},
 	{TEGRA_PINGROUP_ATD,   TEGRA_MUX_GMI,           TEGRA_PUPD_NORMAL,    TEGRA_TRI_NORMAL},
 	{TEGRA_PINGROUP_ATE,   TEGRA_MUX_GMI,           TEGRA_PUPD_NORMAL,    TEGRA_TRI_NORMAL},
-	{TEGRA_PINGROUP_CDEV1, TEGRA_MUX_PLLA_OUT,      TEGRA_PUPD_NORMAL, TEGRA_TRI_TRISTATE},
-	{TEGRA_PINGROUP_CDEV2, TEGRA_MUX_PLLP_OUT4,           TEGRA_PUPD_PULL_DOWN, TEGRA_TRI_TRISTATE},
+	{TEGRA_PINGROUP_CDEV1, TEGRA_MUX_PLLA_OUT,      TEGRA_PUPD_NORMAL,    TEGRA_TRI_TRISTATE},
+	{TEGRA_PINGROUP_CDEV2, TEGRA_MUX_OSC,		TEGRA_PUPD_PULL_DOWN, TEGRA_TRI_NORMAL},
 	{TEGRA_PINGROUP_CRTP,  TEGRA_MUX_CRT,           TEGRA_PUPD_NORMAL,    TEGRA_TRI_TRISTATE},
 	{TEGRA_PINGROUP_CSUS,  TEGRA_MUX_VI_SENSOR_CLK, TEGRA_PUPD_NORMAL,    TEGRA_TRI_TRISTATE},
 	{TEGRA_PINGROUP_DAP1,  TEGRA_MUX_DAP1,          TEGRA_PUPD_NORMAL,    TEGRA_TRI_NORMAL},
@@ -106,7 +106,7 @@ static __initdata struct tegra_pingroup_config adam_pinmux[] = {
 	{TEGRA_PINGROUP_OWC,   TEGRA_MUX_OWR,           TEGRA_PUPD_PULL_UP,   TEGRA_TRI_TRISTATE},
 	{TEGRA_PINGROUP_PMC,   TEGRA_MUX_PWR_ON,        TEGRA_PUPD_NORMAL,    TEGRA_TRI_NORMAL},
 	{TEGRA_PINGROUP_PTA,   TEGRA_MUX_RSVD4,         TEGRA_PUPD_NORMAL,    TEGRA_TRI_TRISTATE},
-	{TEGRA_PINGROUP_RM,    TEGRA_MUX_NONE,           TEGRA_PUPD_NORMAL,    TEGRA_TRI_NORMAL},
+	{TEGRA_PINGROUP_RM,    TEGRA_MUX_I2C,           TEGRA_PUPD_NORMAL,    TEGRA_TRI_NORMAL},
 	{TEGRA_PINGROUP_SDB,   TEGRA_MUX_SDIO3,         TEGRA_PUPD_NORMAL,    TEGRA_TRI_NORMAL},
 	{TEGRA_PINGROUP_SDC,   TEGRA_MUX_SDIO3,         TEGRA_PUPD_NORMAL,    TEGRA_TRI_NORMAL},
 	{TEGRA_PINGROUP_SDD,   TEGRA_MUX_SDIO3,         TEGRA_PUPD_NORMAL,    TEGRA_TRI_NORMAL},
@@ -200,8 +200,6 @@ static struct tegra_gpio_table gpio_table[] = {
 	{ .gpio = ADAM_KEY_VOLUMEUP,		.enable = true },
 	{ .gpio = ADAM_KEY_VOLUMEDOWN,	.enable = true },
 	{ .gpio = ADAM_KEY_POWER,		.enable = true },
-/*	{ .gpio = ADAM_KEY_RESUME,		.enable = true },
-	{ .gpio = ADAM_KEY_SUSPEND,		.enable = true },*/
 	{ .gpio = ADAM_KEY_BACK,			.enable = true },
 //	{ .gpio = ADAM_CAMERA_POWER,		.enable = true },
 	{ .gpio = ADAM_NAND_WPN,			.enable = true },
@@ -213,23 +211,17 @@ static struct tegra_gpio_table gpio_table[] = {
 	{ .gpio = ADAM_HDMI_ENB,			.enable = true },
 	{ .gpio = ADAM_HDMI_HPD,			.enable = true },
 	{ .gpio = ADAM_ENABLE_VDD_VID,	.enable = true },
-/*	{ .gpio = ADAM_SDIO0_CD,			.enable = true },
-	{ .gpio = ADAM_SDIO0_POWER,		.enable = true },*/
 	{ .gpio = ADAM_SDHC_CD,			.enable = true },
-//	{ .gpio = ADAM_SDHC_WP,			.enable = true },
 	{ .gpio = ADAM_SDHC_POWER,		.enable = true },
 	{ .gpio = ADAM_TS_IRQ,			.enable = true },
 	{ .gpio = ADAM_TS_POWER,		.enable = true },
 	{ .gpio = ADAM_TS_RESET,		.enable = true },
-/*	{ .gpio = ADAM_FB_NONROTATE,		.enable = true },*/
 	{ .gpio = ADAM_WLAN_POWER,		.enable = true },
 	{ .gpio = ADAM_WLAN_RESET,		.enable = true },
 	{ .gpio = ADAM_LOW_BATT,		.enable = true },
 	{ .gpio = ADAM_IN_S3,			.enable = true },
-/*	{ .gpio = ADAM_USB0_VBUS,		.enable = true },
-	{ .gpio = ADAM_USB1_RESET,		.enable = true },*/
+/*	{ .gpio = ADAM_USB1_RESET,		.enable = true },*/
 	{ .gpio = ADAM_HP_DETECT,		.enable = true },
-//	{ .gpio = ADAM_NVEC_REQ,			.enable = true },
 };
 
 void __init adam_pinmux_init(void)

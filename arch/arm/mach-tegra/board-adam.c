@@ -233,7 +233,7 @@ static void __init tegra_adam_init(void)
 	adam_bt_pm_register_devices();
 
 	/* Register Camera powermanagement devices */
-//	adam_camera_pm_register_devices();
+	adam_camera_register_devices();
 
 	/* Register NAND flash devices */
 	adam_nand_register_devices();

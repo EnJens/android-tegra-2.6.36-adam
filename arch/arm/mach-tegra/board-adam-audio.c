@@ -15,6 +15,7 @@
  */
 
 /* All configurations related to audio */
+#define ALC5624_IS_MASTER 
  
 #include <linux/console.h>
 #include <linux/kernel.h>
@@ -238,9 +239,9 @@ static struct alc5624_platform_data alc5624_pdata = {
 	.hpvdd_mv 	= 3300,	/* Headphone Vdd in millivolts */
 };
 
-static struct i2c_board_info __initdata adam_i2c_bus0_board_info[] = {
+static struct i2c_board_info __initdata adam_i2c_bus4_board_info[] = {
 	{
-		I2C_BOARD_INFO("alc5624", 0x34),
+		I2C_BOARD_INFO("alc5624", 0x36),
 		.platform_data = &alc5624_pdata,
 	},
 };
@@ -288,8 +289,8 @@ int __init adam_audio_register_devices(void)
 	tegra_das_device.dev.platform_data = &tegra_das_pdata;
 #endif
  
-	ret = i2c_register_board_info(0, adam_i2c_bus0_board_info, 
-		ARRAY_SIZE(adam_i2c_bus0_board_info)); 
+	ret = i2c_register_board_info(4, adam_i2c_bus4_board_info, 
+		ARRAY_SIZE(adam_i2c_bus4_board_info)); 
 	if (ret)
 		return ret;
 	return platform_add_devices(adam_i2s_devices, ARRAY_SIZE(adam_i2s_devices));

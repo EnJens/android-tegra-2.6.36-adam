@@ -272,7 +272,7 @@ int __init adam_usb_register_devices(void)
 {
 	int ret;
 	
-	tegra_usb_phy_init(tegra_usb_phy_pdata, ARRAY_SIZE(tegra_usb_phy_pdata));
+	//tegra_usb_phy_init(tegra_usb_phy_pdata, ARRAY_SIZE(tegra_usb_phy_pdata));
 	
 	//tegra_ehci1_device.dev.platform_data = &tegra_ehci_pdata[0];
 	//tegra_ehci2_device.dev.platform_data = &tegra_ehci_pdata[1];

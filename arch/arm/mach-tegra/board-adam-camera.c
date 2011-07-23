@@ -37,6 +37,7 @@
 #include <mach/irqs.h>
 #include <mach/nand.h>
 #include <mach/iomap.h>
+#include <linux/i2c.h>
 
 #include "board.h"
 #include "board-adam.h"
@@ -44,7 +45,7 @@
 #include "gpio-names.h"
 #include "devices.h"
 
-static struct platform_device adam_camera_pm_device = {
+/*static struct platform_device adam_camera_pm_device = {
 	.name		= "adam-pm-camera",
 	.id			= -1,
 };
@@ -52,9 +53,18 @@ static struct platform_device adam_camera_pm_device = {
 
 static struct platform_device *adam_camera_pm_devices[] __initdata = {
 	&adam_camera_pm_device,
+};*/
+
+static struct i2c_board_info __initdata adam_i2c_bus0_sensor_info[] = {
+         {
+                I2C_BOARD_INFO("ov5650", 0x6c),
+         },
 };
 
-int __init adam_camera_pm_register_devices(void)
+int __init adam_camera_register_devices(void)
 {
-	return platform_add_devices(adam_camera_pm_devices, ARRAY_SIZE(adam_camera_pm_devices));
+
+	return i2c_register_board_info(0, adam_i2c_bus0_sensor_info,
+                ARRAY_SIZE(adam_i2c_bus0_sensor_info));	
+//	return platform_add_devices(adam_camera_pm_devices, ARRAY_SIZE(adam_camera_pm_devices));
 }

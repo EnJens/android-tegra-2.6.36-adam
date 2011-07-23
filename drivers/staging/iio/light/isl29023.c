@@ -184,14 +184,13 @@ static ssize_t get_sensor_data(struct device *dev, char *buf, int mode)
 
 	mutex_lock(&chip->lock);
 	switch (mode) {
-		case COMMMAND1_OPMODE_PROX_ONCE:
-			status = isl29023_read_proximity_ir(client,
-				chip->prox_scheme, &value);
-			break;
-
 		case COMMMAND1_OPMODE_ALS_ONCE:
 			status = isl29023_read_lux(client, &value);
 			break;
+		case COMMMAND1_OPMODE_IR_ONCE:
+                        status = isl29023_read_ir(client, &value);
+                        break;
+
 
 		default:
 			dev_err(&client->dev,"Mode %d is not supported\n",mode);

@@ -35,6 +35,8 @@
 
 
 #define DRIVER_NAME	"at168_touch"
+#define TS_POLL_DELAY			1 /* ms delay between samples */
+#define TS_POLL_PERIOD			1 /* ms delay between samples */
 
 #ifdef CONFIG_HAS_EARLYSUSPEND
 static void at168_early_suspend(struct early_suspend *h);
@@ -49,6 +51,7 @@ struct at168_data {
 	int			gpio_reset;
 	int 		gpio_irq;
 	struct early_suspend	early_suspend;
+	struct delayed_work	work;
 };
 
 struct at168_event {
@@ -75,18 +78,15 @@ static void at168_reset(struct at168_data *touch)
 	msleep(60);
 }
 
-static irqreturn_t at168_irq(int irq, void *dev_id)
+static void at168_work(struct work_struct *work)
 {
-	struct at168_data *touch = dev_id;
+	struct at168_data *touch =
+		container_of(to_delayed_work(work), struct at168_data, work);
 	union at168_buff event;
-	int ret, i;
+	int ret,i;
+	
 	ret = at168_read_registers(touch, AT168_TOUCH_NUM, event.buff, sizeof(event));
-
-	// Debug
-/*	printk("at168_touch: Touches: %u, Prev Touches: %u\n", event.data.fingers, event.data.old_fingers);
-	printk("at168_touch: Position: (%u, %u)\n", event.data.coord[0][0],event.data.coord[0][1]);
-	printk("at168_touch: Position: (%u, %u)\n", event.data.coord[1][0],event.data.coord[1][1]);*/
-
+	
 	input_report_key(touch->input_dev, BTN_TOUCH,
 			 (event.data.fingers == 1 || event.data.fingers == 2));
 	input_report_key(touch->input_dev, BTN_2, (event.data.fingers == 2));
@@ -102,9 +102,22 @@ static irqreturn_t at168_irq(int irq, void *dev_id)
 		input_report_abs(touch->input_dev, ABS_MT_TRACKING_ID, i + 1);
 		input_mt_sync(touch->input_dev);
 	}
-
 out:
 	input_sync(touch->input_dev);
+	if (event.data.fingers == 1 || event.data.fingers == 2)
+		schedule_delayed_work(&touch->work,
+				      msecs_to_jiffies(TS_POLL_PERIOD));
+	else
+		enable_irq(touch->gpio_irq);
+}
+
+static irqreturn_t at168_irq(int irq, void *dev_id)
+{
+	struct at168_data *ts = dev_id;
+	disable_irq_nosync(ts->gpio_irq);
+	schedule_delayed_work(&ts->work,
+		      msecs_to_jiffies(TS_POLL_DELAY));
+
 	return IRQ_HANDLED;
 }
 
@@ -203,7 +216,8 @@ static int at168_probe(struct i2c_client *client,
 
 	touch->client = client;
 	i2c_set_clientdata(client, touch);
-
+	INIT_DELAYED_WORK(&touch->work, at168_work);
+	
 	at168_reset(touch);
 
 	
@@ -267,7 +281,8 @@ static int at168_probe(struct i2c_client *client,
 			dev_err(&client->dev, "%s: request_irq(%d) failed\n",
 				__func__, touch->client->irq);
 			goto fail_irq;
-	}
+	} else
+		touch->gpio_irq = touch->client->irq;
 
 	/* todo: rewrite to proper debug output device. See pinmux.c */
 /*	ret = device_create_file(&touch->input_dev->dev, &dev_attr_dump_registers);

@@ -471,7 +471,7 @@ enum {
 };
 
 static struct ov5650_reg *mode_table[] = {
-	[OV5650_MODE_2592x1944] = mode_2592x1944,
+//	[OV5650_MODE_2592x1944] = mode_2592x1944,
 	[OV5650_MODE_1296x972] = mode_1296x972,
 	[OV5650_MODE_2080x1164] = mode_2080x1164,
 	[OV5650_MODE_1264x704] = mode_1264x704
