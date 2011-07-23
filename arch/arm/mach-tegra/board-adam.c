@@ -200,7 +200,7 @@ static void __init tegra_adam_init(void)
 	adam_gpu_register_devices();
 
 	/* Register Audio devices */
-	adam_audio_register_devices();
+	//adam_audio_register_devices();
 
 	/* Register AES encryption devices */
 	adam_aes_register_devices();
@@ -218,7 +218,7 @@ static void __init tegra_adam_init(void)
 	adam_sdhci_register_devices();
 
 	/* Register accelerometer device */
-	adam_sensors_register_devices();
+//	adam_sensors_register_devices();
 	
 	/* Register wlan powermanagement devices */
 //	adam_wlan_pm_register_devices();
@@ -233,7 +233,7 @@ static void __init tegra_adam_init(void)
 	adam_bt_pm_register_devices();
 
 	/* Register Camera powermanagement devices */
-	adam_camera_register_devices();
+//	adam_camera_register_devices();
 
 	/* Register NAND flash devices */
 	adam_nand_register_devices();
