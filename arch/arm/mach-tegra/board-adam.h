@@ -17,6 +17,7 @@
 #ifndef _MACH_TEGRA_BOARD_ADAM_H
 #define _MACH_TEGRA_BOARD_ADAM_H
 
+#define TPS6586X_INT_BASE	TEGRA_NR_IRQS
 
 #define ADAM_BT_RESET 		TEGRA_GPIO_PU0 	/* 0= reset asserted */
 

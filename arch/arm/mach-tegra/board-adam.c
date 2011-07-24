@@ -218,7 +218,7 @@ static void __init tegra_adam_init(void)
 	adam_sdhci_register_devices();
 
 	/* Register accelerometer device */
-//	adam_sensors_register_devices();
+	adam_sensors_register_devices();
 	
 	/* Register wlan powermanagement devices */
 //	adam_wlan_pm_register_devices();

@@ -30,16 +30,16 @@
 static struct i2c_board_info __initdata adam_i2c_bus2_sensor_info[] = {
 	 {
 		I2C_BOARD_INFO("isl29023", 0x44),
+		.irq = TEGRA_GPIO_TO_IRQ(TEGRA_GPIO_PV5),
 	 },
 	{
-		I2C_BOARD_INFO("bq20z75-battery", 0x16),
+		I2C_BOARD_INFO("bq20z75-battery", 0x0b),
 		.irq = TEGRA_GPIO_TO_IRQ(TEGRA_GPIO_PH2),
 	},
 };
 
 int __init adam_sensors_register_devices(void)
 {
-	return i2c_register_board_info(0, adam_i2c_bus2_sensor_info,
+	return i2c_register_board_info(2, adam_i2c_bus2_sensor_info,
 		ARRAY_SIZE(adam_i2c_bus2_sensor_info));
-	return 0;
 }

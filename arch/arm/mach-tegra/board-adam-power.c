@@ -419,7 +419,6 @@ static struct tps6586x_platform_data tps_platform = {
 static struct i2c_board_info __initdata adam_regulators[] = {
 	{
 		I2C_BOARD_INFO("tps6586x", 0x34),
-		//I2C_BOARD_INFO("tps6586x", 0x68),
 		.platform_data = &tps_platform,
 	},
 };
@@ -488,6 +487,40 @@ static struct platform_device adam_nvec_mfd = {
 		.platform_data = &nvec_mfd_platform_data,
 	},
 }; 
+/*
+static struct regulator_consumer_supply bq24610_consumers[] = {
+        {
+                .dev = &gpio_vbus.dev,
+                .supply = "vbus_draw",
+        },
+        {
+                .dev = &power_supply.dev,
+                .supply = "ac_draw",
+        },
+};
+
+
+static struct regulator_init_data bq24610_init_data = {
+        .constraints = {
+                .max_uA         = 500000,
+                .valid_ops_mask = REGULATOR_CHANGE_CURRENT,
+        },
+        .num_consumer_supplies  = ARRAY_SIZE(bq24610_consumers),
+        .consumer_supplies      = bq24610_consumers,
+};
+
+
+static struct bq24610_mach_info bq24610_platform_data = {
+	.gpio_nce = TEGRA_GPIO_PK7,
+	.init_data = &bq24610_init_data,
+}
+
+static struct platform_device adam_bq24610_device= {
+	.name = "bq24610",
+	.dev = {
+		.platform_data = &bq24610_platform_data,
+	},
+}; */
 
 static void reg_off(const char *reg)
 {
@@ -558,7 +591,8 @@ static struct platform_device *adam_power_devices[] __initdata = {
 	&pmu_device,
 #endif
 	//&adam_nvec_mfd,
-	&tegra_rtc_device,	
+	&tegra_rtc_device,
+	//&adam_bq24610_device,
 };
 
 /* Init power management unit of Tegra2 */
