@@ -309,8 +309,6 @@ static int at168_probe(struct i2c_client *client,
 fail_irq:
 	input_unregister_device(touch->input_dev);
 fail_i2c_or_register:
-	if(touch->read_client)
-		i2c_unregister_device(touch->read_client);
 	if (touch->gpio_reset >= 0)
 		gpio_free(touch->gpio_reset);
 
