@@ -279,7 +279,7 @@ static struct regulator_init_data ldo2_data
 static struct regulator_init_data ldo3_data 		 
 	= ADJ_REGULATOR_INIT(ldo3,1250, 3350, 0, 0); // 3300 
 static struct regulator_init_data ldo4_data 		 
-	= ADJ_REGULATOR_INIT(ldo4,1700, 2000, 0, 0); // 1800
+	= ADJ_REGULATOR_INIT(ldo4,1700, 2000, 1, 1); // 1800
 static struct regulator_init_data ldo5_data 		 
 	= ADJ_REGULATOR_INIT(ldo5,1250, 3350, 0, 1); // 2850
 static struct regulator_init_data ldo6_data 		 
