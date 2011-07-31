@@ -378,7 +378,7 @@ static int isl29023_chip_init(struct i2c_client *client)
 	int new_adc_bit;
 	unsigned int new_range;
 
-//	isl29023_regulator_enable(client);
+	isl29023_regulator_enable(client);
 
 	for (i = 0; i < ARRAY_SIZE(chip->reg_cache); i++) {
 		chip->reg_cache[i] = 0;
@@ -453,7 +453,7 @@ static int __devexit isl29023_remove(struct i2c_client *client)
 	struct isl29023_chip *chip = i2c_get_clientdata(client);
 
 	dev_dbg(&client->dev, "%s()\n", __func__);
-	//isl29023_regulator_disable(client);
+	isl29023_regulator_disable(client);
 	iio_device_unregister(chip->indio_dev);
 	kfree(chip);
 	return 0;
