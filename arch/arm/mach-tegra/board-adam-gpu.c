@@ -114,11 +114,11 @@ static int adam_hdmi_enable(void)
 	if (adam_hdmi_enabled)
 		return 0;
 		
-	gpio_set_value(ADAM_HDMI_ENB, 1);
+//	gpio_set_value(ADAM_HDMI_ENB, 1);
 	
 	adam_hdmi_reg = regulator_get(NULL, "avdd_hdmi");
 	if (IS_ERR_OR_NULL(adam_hdmi_reg)) {
-		gpio_set_value(ADAM_HDMI_ENB, 0);
+//		gpio_set_value(ADAM_HDMI_ENB, 0);
 		return PTR_ERR(adam_hdmi_reg);
 	}
 
@@ -126,7 +126,7 @@ static int adam_hdmi_enable(void)
 	if (IS_ERR_OR_NULL(adam_hdmi_pll)) {
 		regulator_put(adam_hdmi_reg);
 		adam_hdmi_reg = NULL;
-		gpio_set_value(ADAM_HDMI_ENB, 0);
+//		gpio_set_value(ADAM_HDMI_ENB, 0);
 		return PTR_ERR(adam_hdmi_pll);
 	}
 	
@@ -141,7 +141,7 @@ static int adam_hdmi_disable(void)
 	if (!adam_hdmi_enabled)
 		return 0;
 		
-	gpio_set_value(ADAM_HDMI_ENB, 0);
+//	gpio_set_value(ADAM_HDMI_ENB, 0);
 	
 	regulator_disable(adam_hdmi_reg);
 	regulator_disable(adam_hdmi_pll);
@@ -426,8 +426,8 @@ int __init adam_gpu_register_devices(void)
 	gpio_request(ADAM_BL_VDD, "bl_vdd");
 	gpio_direction_output(ADAM_BL_VDD, 1);
 	
-	gpio_request(ADAM_HDMI_ENB, "hdmi_5v_en");
-	gpio_direction_output(ADAM_HDMI_ENB, 1);
+//	gpio_request(ADAM_HDMI_ENB, "hdmi_5v_en");
+//	gpio_direction_output(ADAM_HDMI_ENB, 1);
 	
 	gpio_request(ADAM_LVDS_SHUTDOWN, "lvds_shdn");
 	gpio_direction_output(ADAM_LVDS_SHUTDOWN, 1);
