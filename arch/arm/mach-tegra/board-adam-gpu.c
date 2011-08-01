@@ -50,6 +50,12 @@ static int adam_backlight_init(struct device *dev)
 	if (ret < 0)
 		gpio_free(ADAM_BL_ENB);
 
+	// PQI on/off at /sys/bus/gpio/gpio27
+	ret = gpio_export(ADAM_BL_ENB, 0);
+	if(ret < 0)
+		gpio_free(ADAM_BL_ENB);
+
+	gpio_sysfs_set_active_low(ADAM_BL_ENB, 1);
 	return ret;
 };
 
