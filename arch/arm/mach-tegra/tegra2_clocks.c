@@ -16,6 +16,7 @@
  * GNU General Public License for more details.
  *
  */
+#define DEBUG
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -886,7 +887,7 @@ static void tegra2_periph_clk_init(struct clk *c)
 static int tegra2_periph_clk_enable(struct clk *c)
 {
 	u32 val;
-	pr_debug("%s on clock %s\n", __func__, c->name);
+	//pr_debug("%s on clock %s\n", __func__, c->name);
 
 	tegra_periph_clk_enable_refcount[c->u.periph.clk_num]++;
 	if (tegra_periph_clk_enable_refcount[c->u.periph.clk_num] > 1)
@@ -909,7 +910,7 @@ static int tegra2_periph_clk_enable(struct clk *c)
 
 static void tegra2_periph_clk_disable(struct clk *c)
 {
-	pr_debug("%s on clock %s\n", __func__, c->name);
+	//pr_debug("%s on clock %s\n", __func__, c->name);
 
 	if (c->refcnt)
 		tegra_periph_clk_enable_refcount[c->u.periph.clk_num]--;
