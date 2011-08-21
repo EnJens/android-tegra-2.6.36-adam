@@ -47,3 +47,4 @@ obj-$(CONFIG_SENSORS_NCT1008)	+= nct1008.o
 obj-$(CONFIG_TEGRA_CRYPTO_DEV)	+= tegra-cryptodev.o
 obj-$(CONFIG_MAX1749_VIBRATOR)	+= max1749.o
 obj-$(CONFIG_SENSORS_MMC31XX)	+= mmc31xx.o
+obj-$(CONFIG_ECOMPASS)		+= mecs.o

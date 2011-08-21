@@ -167,7 +167,7 @@ static ssize_t mmc31xx_fs_read(struct device *dev, struct device_attribute *attr
 	vec[1] = data[2] << 8 | data[3];
 	vec[2] = data[4] << 8 | data[5];
 
-	pr_debug("[X - %04x] [Y - %04x] [Z - %04x]\n", 
+	printk(KERN_DEBUG "[X - %04x] [Y - %04x] [Z - %04x]\n", 
 		vec[0], vec[1], vec[2]);
 
 	count = sprintf(buf,"%d,%d,%d\n", vec[0], vec[1], vec[2]);
@@ -197,7 +197,7 @@ static ssize_t mmc31xx_power_on(struct device *dev, struct device_attribute *att
 	/* wait TM done for coming data read */
 	msleep(MMC31XX_DELAY_TM);
 
-	pr_debug("[%s] result of i2c writing: %d\n", __func__, !(res < 0));
+	printk(KERN_DEBUG "[%s] result of i2c writing: %d\n", __func__, !(res < 0));
 	
 	count = sprintf(buf,"%d\n", !(res < 0));
 
@@ -263,7 +263,7 @@ static int mmc31xx_ioctl(struct file *file,
 		vec[1] = data[2] << 8 | data[3];
 		vec[2] = data[4] << 8 | data[5];
 		
-		pr_debug("[X - %04x] [Y - %04x] [Z - %04x]\n", 
+		printk(KERN_DEBUG "[X - %04x] [Y - %04x] [Z - %04x]\n", 
 			vec[0], vec[1], vec[2]);
 
 		if (copy_to_user(pa, vec, sizeof(vec))) {
@@ -279,7 +279,7 @@ static int mmc31xx_ioctl(struct file *file,
 			/* not check return value here, assume it always OK */
 			mmc31xx_i2c_tx_data(data, 2);
 
-			pr_debug(KERN_ERR "RESET\n");
+			printk(KERN_DEBUG KERN_ERR "RESET\n");
 
 			/* wait external capacitor charging done for next SET/RESET */
 			msleep(MMC31XX_DELAY_SET);
@@ -289,7 +289,7 @@ static int mmc31xx_ioctl(struct file *file,
 			/* not check return value here, assume it always OK */
 			mmc31xx_i2c_tx_data(data, 2);
 
-			pr_debug(KERN_ERR "SET\n");	
+			printk(KERN_DEBUG KERN_ERR "SET\n");	
 
 			msleep(MMC31XX_DELAY_STDN);
 			read_idx = 0;
@@ -316,7 +316,7 @@ static int mmc31xx_ioctl(struct file *file,
 		vec[1] = data[2] << 8 | data[3];
 		vec[2] = data[4] << 8 | data[5];
 
-		pr_debug("[X - %04x] [Y - %04x] [Z - %04x]\n", 
+		printk(KERN_DEBUG "[X - %04x] [Y - %04x] [Z - %04x]\n", 
 			vec[0], vec[1], vec[2]);
 
 		if (copy_to_user(pa, vec, sizeof(vec))) {
@@ -373,7 +373,7 @@ int mmc31xx_probe(struct i2c_client *client, const struct i2c_device_id *id)
 	unsigned char data[16] = {0};
 	int res = 0;
 
-	pr_debug("[mmc31xx_probe] +\n");
+	printk(KERN_DEBUG "[mmc31xx_probe] +\n");
 	
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
 		pr_err("%s: functionality check failed\n", __FUNCTION__);
@@ -406,7 +406,7 @@ int mmc31xx_probe(struct i2c_client *client, const struct i2c_device_id *id)
 	/* wait external capacitor charging done for next SET/RESET */
 	msleep(MMC31XX_DELAY_SET);
 
-	pr_debug("[mmc31xx_probe] -\n");
+	printk(KERN_DEBUG "[mmc31xx_probe] -\n");
 
 	return 0;
 
@@ -433,7 +433,7 @@ static int mmc31xx_suspend(struct i2c_client *client, pm_message_t mesg)
 //	if(vreg_disable(mmc31xx_vreg))
 //		printk(KERN_ERR "vreg_disable: VLCD_3.0V vreg operation failed\n");
 	
-	pr_debug( "[%s]\n",__FUNCTION__);
+	printk(KERN_DEBUG  "[%s]\n",__FUNCTION__);
 
 	return 0;
 }
@@ -448,7 +448,7 @@ static int mmc31xx_resume(struct i2c_client *client)
 //		printk(KERN_ERR "vreg_enable: VLCD_3.0V vreg operation failed\n");			
 		
 
-	pr_debug("[%s]\n",__FUNCTION__);
+	printk(KERN_DEBUG "[%s]\n",__FUNCTION__);
 
 	return 0;
 }
@@ -477,7 +477,7 @@ static struct i2c_driver mmc31xx_driver = {
 static int __init mmc31xx_init(void)
 {
 	struct device *dev_t;
-	pr_debug("mmc31xx driver: init\n");
+	printk(KERN_DEBUG "mmc31xx driver: init\n");
 	mag_class = class_create(THIS_MODULE, "magnetic");
 
 	if (IS_ERR(mag_class)) 
@@ -500,7 +500,7 @@ static int __init mmc31xx_init(void)
 
 static void __exit mmc31xx_exit(void)
 {
-	pr_debug("mmc31xx driver: exit\n");
+	printk(KERN_DEBUG "mmc31xx driver: exit\n");
 	i2c_del_driver(&mmc31xx_driver);
 }
 
