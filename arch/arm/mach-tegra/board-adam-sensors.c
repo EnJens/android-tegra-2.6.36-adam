@@ -47,6 +47,9 @@ static struct i2c_board_info __initdata adam_i2c_bus2_sensor_info[] = {
 		I2C_BOARD_INFO("lis3lv02d", 0x1C),
 		.irq = TEGRA_GPIO_TO_IRQ(TEGRA_GPIO_PJ0),
 	},
+	{
+		I2C_BOARD_INFO("mmc31xx", 0x30),
+	},
 };
 
 int __init adam_sensors_register_devices(void)
