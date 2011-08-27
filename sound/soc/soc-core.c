@@ -713,8 +713,8 @@ static int soc_pcm_hw_params(struct snd_pcm_substream *substream,
 	if (codec_dai->ops->hw_params) {
 		ret = codec_dai->ops->hw_params(substream, params, codec_dai);
 		if (ret < 0) {
-			printk(KERN_ERR "asoc: can't set codec %s hw params\n",
-				codec_dai->name);
+			printk(KERN_ERR "asoc: can't set codec %s hw params (%d)\n",
+				codec_dai->name, ret);
 			goto codec_err;
 		}
 	}
@@ -1789,8 +1789,8 @@ int snd_soc_add_controls(struct snd_soc_codec *codec,
 		const struct snd_kcontrol_new *control = &controls[i];
 		err = snd_ctl_add(card, snd_soc_cnew(control, codec, NULL));
 		if (err < 0) {
-			dev_err(codec->dev, "%s: Failed to add %s\n",
-				codec->name, control->name);
+			dev_err(codec->dev, "%s: Failed to add %s\n (%d)",
+				codec->name, control->name, err);
 			return err;
 		}
 	}

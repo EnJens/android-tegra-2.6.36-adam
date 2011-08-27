@@ -19,6 +19,8 @@
 
 #include "tegra_soc.h"
 
+#define DRV_NAME "tegra-i2s"
+
 /* i2s controller */
 struct tegra_i2s_info {
 	struct platform_device *pdev;
@@ -320,7 +322,7 @@ int tegra_i2s_resume(struct snd_soc_dai *cpu_dai)
 
 	tegra_das_set_all_regs(&info->das_regs);
 	i2s_set_all_regs(cpu_dai->id, &info->i2s_regs);
-	tegra_jack_resume();
+	//tegra_jack_resume();
 
 	clk_disable(info->i2s_clk);
 
@@ -375,44 +377,46 @@ static struct snd_soc_dai_ops tegra_i2s_dai_ops = {
 
 struct snd_soc_dai tegra_i2s_dai[] = {
 	{
-		.name = "tegra-i2s-1",
+		.name = DRV_NAME ".0",
 		.id = 0,
 		.probe = tegra_i2s_probe,
 		.suspend = tegra_i2s_suspend,
 		.resume = tegra_i2s_resume,
 		.playback = {
-			.channels_min = 1,
+			.channels_min = 2,
 			.channels_max = 2,
-			.rates = TEGRA_SAMPLE_RATES,
+			.rates = SNDRV_PCM_RATE_8000_96000,
 			.formats = SNDRV_PCM_FMTBIT_S16_LE,
 		},
 		.capture = {
-			.channels_min = 1,
+			.channels_min = 2,
 			.channels_max = 2,
-			.rates = TEGRA_SAMPLE_RATES,
+			.rates = SNDRV_PCM_RATE_8000_96000,
 			.formats = SNDRV_PCM_FMTBIT_S16_LE,
 		},
 		.ops = &tegra_i2s_dai_ops,
+		.symmetric_rates = 1,
 	},
 	{
-		.name = "tegra-i2s-2",
+		.name = DRV_NAME ".1",
 		.id = 1,
 		.probe = tegra_i2s_probe,
 		.suspend = tegra_i2s_suspend,
 		.resume = tegra_i2s_resume,
 		.playback = {
-			.channels_min = 1,
+			.channels_min = 2,
 			.channels_max = 2,
-			.rates = TEGRA_SAMPLE_RATES,
+			.rates = SNDRV_PCM_RATE_8000_96000,
 			.formats = SNDRV_PCM_FMTBIT_S16_LE,
 		},
 		.capture = {
-			.channels_min = 1,
+			.channels_min = 2,
 			.channels_max = 2,
-			.rates = TEGRA_SAMPLE_RATES,
+			.rates = SNDRV_PCM_RATE_8000_96000,
 			.formats = SNDRV_PCM_FMTBIT_S16_LE,
 		},
 		.ops = &tegra_i2s_dai_ops,
+		.symmetric_rates = 1,
 	},
 };
 EXPORT_SYMBOL_GPL(tegra_i2s_dai);
@@ -420,6 +424,7 @@ EXPORT_SYMBOL_GPL(tegra_i2s_dai);
 static int tegra_i2s_driver_probe(struct platform_device *pdev)
 {
 	int err = 0;
+	char clk_name[12]; /* tegra-i2s.0 */
 	struct resource *res, *mem;
 	struct tegra_i2s_info *info;
 	int i = 0;
@@ -430,11 +435,13 @@ static int tegra_i2s_driver_probe(struct platform_device *pdev)
 	if (!info)
 		return -ENOMEM;
 
+	pr_info("%s1\n", __func__);
 	info->pdev = pdev;
 	info->pdata = pdev->dev.platform_data;
 	info->pdata->driver_data = info;
 	BUG_ON(!info->pdata);
-
+	
+	pr_info("%s2\n", __func__);
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	if (!res) {
 		dev_err(&pdev->dev, "no mem resource!\n");
@@ -442,6 +449,7 @@ static int tegra_i2s_driver_probe(struct platform_device *pdev)
 		goto fail;
 	}
 
+	pr_info("%s3\n", __func__);
 	mem = request_mem_region(res->start, resource_size(res), pdev->name);
 	if (!mem) {
 		dev_err(&pdev->dev, "memory region already claimed!\n");
@@ -449,6 +457,7 @@ static int tegra_i2s_driver_probe(struct platform_device *pdev)
 		goto fail;
 	}
 
+	pr_info("%s4\n", __func__);
 	info->i2s_phys = res->start;
 	info->i2s_base = ioremap(res->start, res->end - res->start + 1);
 	if (!info->i2s_base) {
@@ -457,6 +466,7 @@ static int tegra_i2s_driver_probe(struct platform_device *pdev)
 		goto fail_release_mem;
 	}
 
+	pr_info("%s5\n", __func__);
 	res = platform_get_resource(pdev, IORESOURCE_DMA, 0);
 	if (!res) {
 		dev_err(&pdev->dev, "no dma resource!\n");
@@ -465,6 +475,7 @@ static int tegra_i2s_driver_probe(struct platform_device *pdev)
 	}
 	info->dma_req_sel = res->start;
 
+	pr_info("%s6\n", __func__);
 	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
 	if (!res) {
 		dev_err(&pdev->dev, "no irq resource!\n");
@@ -473,7 +484,9 @@ static int tegra_i2s_driver_probe(struct platform_device *pdev)
 	}
 	info->irq = res->start;
 
-	info->i2s_clk = clk_get(&pdev->dev, NULL);
+	pr_info("%s7\n", __func__);
+	snprintf(clk_name, sizeof(clk_name), DRV_NAME ".%d", pdev->id);
+	info->i2s_clk = clk_get_sys(clk_name, NULL);
 	if (IS_ERR(info->i2s_clk)) {
 		err = PTR_ERR(info->i2s_clk);
 		goto fail_unmap_mem;
@@ -487,6 +500,7 @@ static int tegra_i2s_driver_probe(struct platform_device *pdev)
 
 	i2s_configure(info);
 
+	pr_info("%s8\n", __func__);
 	for (i = 0; i < ARRAY_SIZE(tegra_i2s_dai); i++) {
 		if (tegra_i2s_dai[i].id == pdev->id) {
 			tegra_i2s_dai[i].dev = &pdev->dev;
@@ -497,6 +511,7 @@ static int tegra_i2s_driver_probe(struct platform_device *pdev)
 		}
 	}
 
+	pr_info("%s9\n", __func__);
 	/* Disable i2s clk to save power */
 	clk_disable(info->i2s_clk);
 
@@ -510,7 +525,6 @@ fail:
 	kfree(info);
 	return err;
 }
-
 
 static int __devexit tegra_i2s_driver_remove(struct platform_device *pdev)
 {
@@ -530,7 +544,7 @@ static struct platform_driver tegra_i2s_driver = {
 	.probe = tegra_i2s_driver_probe,
 	.remove = __devexit_p(tegra_i2s_driver_remove),
 	.driver = {
-		.name = "i2s",
+		.name = DRV_NAME,
 		.owner = THIS_MODULE,
 	},
 };

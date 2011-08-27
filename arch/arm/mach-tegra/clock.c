@@ -313,6 +313,8 @@ int clk_set_parent(struct clk *c, struct clk *parent)
 	clk_lock_save(c, flags);
 
 	if (!c->ops || !c->ops->set_parent) {
+		dump_stack();
+		printk(KERN_INFO "Parent says %p", c->ops);
 		ret = -ENOSYS;
 		goto out;
 	}
@@ -357,6 +359,8 @@ int clk_set_rate(struct clk *c, unsigned long rate)
 	clk_lock_save(c, flags);
 
 	if (!c->ops || !c->ops->set_rate) {
+		dump_stack();
+		printk(KERN_INFO "Rate says %p", c->ops);
 		ret = -ENOSYS;
 		goto out;
 	}
@@ -428,6 +432,8 @@ long clk_round_rate(struct clk *c, unsigned long rate)
 	clk_lock_save(c, flags);
 
 	if (!c->ops || !c->ops->round_rate) {
+		dump_stack();
+		printk(KERN_INFO "Round says %p", c->ops);
 		ret = -ENOSYS;
 		goto out;
 	}

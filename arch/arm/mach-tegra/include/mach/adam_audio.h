@@ -15,6 +15,6 @@
  *
  */
 
-struct shuttle_audio_platform_data {
+struct adam_audio_platform_data {
 	int gpio_hp_det;
 };

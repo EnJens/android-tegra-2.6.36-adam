@@ -164,7 +164,7 @@ static struct tegra_ulpi_config ulpi_phy_config = {
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,38)
 	.clk = "cdev2",
 #else
-	.clk = "clk_dev2",
+	.clk = "cdev2",
 #endif
 	.inf_type = TEGRA_USB_LINK_ULPI,
 };

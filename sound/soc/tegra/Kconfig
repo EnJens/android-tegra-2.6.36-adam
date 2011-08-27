@@ -60,7 +60,7 @@ config SND_TEGRA_SOC_ADAM
 	select SND_TEGRA_SOC_I2S
 	select SND_TEGRA_SOC_IEC
 	select SND_TEGRA_SOC_PCM
-	select SND_SOC_ALC5624
+	select SND_SOC_ALC5623
 	help
 	  Say Y or M here if you want to add support for SoC audio on the
 	  Notion Ink Adam Tablet PCs.

@@ -94,7 +94,7 @@ static __initdata struct tegra_clk_init_table adam_clk_init_table[] = {
 	{ "pclk",		"hclk",			 54000000,	true},		/* must be always on */
 
 	/* pll_a and pll_a_out0 are clock sources for audio interfaces */
-#ifdef ALC5624_IS_MASTER
+#ifdef ALC5623_IS_MASTER
 	{ "pll_a",		"pll_p_out1",	 73728000,	true},		/* always on - audio clocks */
 	{ "pll_a_out0",	"pll_a",		 18432000,	true},		/* always on - i2s audio */
 #else
@@ -136,7 +136,7 @@ static __initdata struct tegra_clk_init_table adam_clk_init_table[] = {
 	{ "pcie_xclk",	"clk_m",		 12000000,	false},		/* pcie controller */
 #endif
 		
-#ifdef ALC5624_IS_MASTER		
+#ifdef ALC5623_IS_MASTER		
 	{ "i2s1",   	"clk_m",         12000000,  false},		/* i2s.0 */
 	{ "i2s2",		"clk_m",	     12000000,	false},		/* i2s.1 */
 	{ "audio", 		"i2s1",          12000000,  false},
@@ -155,18 +155,21 @@ static __initdata struct tegra_clk_init_table adam_clk_init_table[] = {
 	/* cdev[1-2] take the configuration (clock parents) from the pinmux config, 
 	   That is why we are setting it to NULL */
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,38)
-#	define CDEV1 "cdev1"
-#	define CDEV2 "cdev2"
+#define CDEV1 "cdev1"
+#define CDEV2 "cdev2"
 #else
-#	define CDEV1 "clk_dev1"
-#	define CDEV2 "clk_dev2"
+#define CDEV1 "cdev1"
+#define CDEV2 "cdev2"
 #endif
-#ifdef ALC5624_IS_MASTER		
-	{ CDEV1,   NULL /*"pll_a_out0"*/,18432000,  false},		/* used as audio CODEC MCLK */	
+#ifdef ALC5623_IS_MASTER		
+//	{ CDEV1,   NULL,	18432000,  false},		/* used as audio CODEC MCLK */	
+	{ CDEV1,   "pll_a_out0",18432000,  false},		/* used as audio CODEC MCLK */	
 #else
-	{ CDEV1,   NULL /*"pll_a_out0"*/,12288000,  false},		/* used as audio CODEC MCLK */	
+//	{ CDEV1,   NULL,	12288000,  false},		/* used as audio CODEC MCLK */	
+	{ CDEV1,   "pll_a_out0",12288000,  true},		/* used as audio CODEC MCLK */	
 #endif
-	{ CDEV2,   NULL /*"pll_p_out4"*/,26000000,  false}, 	/* probably used as USB clock - perhaps 24mhz ?*/	
+//	{ CDEV2,   NULL,	26000000,  false}, 	/* probably used as USB clock - perhaps 24mhz ?*/	
+	{ CDEV2,   "pll_p_out4",26000000,  false}, 	/* probably used as USB clock - perhaps 24mhz ?*/	
 
 	
 	{ "i2c1_i2c",	"pll_p_out3",	 72000000,	false},		/* tegra-i2c.0 */

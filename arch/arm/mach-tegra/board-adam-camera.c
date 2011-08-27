@@ -55,16 +55,16 @@ static struct platform_device *adam_camera_pm_devices[] __initdata = {
 	&adam_camera_pm_device,
 };*/
 
-static struct i2c_board_info __initdata adam_i2c_bus0_sensor_info[] = {
+static struct i2c_board_info __initdata adam_i2c_bus3_sensor_info[] = {
          {
-                I2C_BOARD_INFO("ov5650", 0x6c),
+                I2C_BOARD_INFO("ov5650", 0x3c),
          },
 };
 
 int __init adam_camera_register_devices(void)
 {
 
-	return i2c_register_board_info(0, adam_i2c_bus0_sensor_info,
-                ARRAY_SIZE(adam_i2c_bus0_sensor_info));	
+	return i2c_register_board_info(3, adam_i2c_bus3_sensor_info,
+                ARRAY_SIZE(adam_i2c_bus3_sensor_info));	
 //	return platform_add_devices(adam_camera_pm_devices, ARRAY_SIZE(adam_camera_pm_devices));
 }
